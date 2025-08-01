@@ -1,7 +1,7 @@
 ### References vs Pointers
 Pointers and references can have similar use cases in C++. Both references and pointers can be used in pass-by-reference to a function. Additionally, they both provide an alternative way to access an existing variable: 
-- pointers through the variable's address.
-- references through another name for that variable. 
+- **pointers** through the variable's address.
+- **references** through another name for that variable (alias) and it is **evaluated at compile time**. 
 
 But what are the differences between the two, and when should each be used? The following list summarizes some of the differences between pointers and references, as well as when each should be used:
 
@@ -16,7 +16,9 @@ But what are the differences between the two, and when should each be used? The 
 
 **Pointers**
 - Pointers can be declared without initialization. **This could mean two things:**
+  
   **1-** It can be dangerous as if this happens mistakenly, the pointer could be pointing to an arbitrary address in memory, and the data associated with that address could be meaningless, leading to undefined behavior and difficult-to-resolve bugs.
+  
   **2-** We can pass an uninitialized pointer to a function who then internally performs the initialization for us.
 
 - Pointers can be null. In fact, if a pointer is not initialized immediately, it is often best practice to initialize to nullptr, a special type which indicates that the pointer is null.
@@ -72,8 +74,10 @@ However, there are two major downsides to this:
 Passing parameters by reference using a pointer, we are also creating a local copy as well but note that we are now passing a pointer variable. This means that a copy of the memory address of the variable is created, which we can then use to directly modify its content by using the dereference operator *. 
 
 **NOTE** here that using this method is a combination of both
-1- passing by value: which is the pointer variable, this creates a copy of the pointer variable in the stack (4 bytes - 32bitsystem or 8 bytes for 64 bit system)
-2- passing by reference: which is the address of the variable that the pointer points to.
+
+    1- passing by value: which is the pointer variable, this creates a copy of the pointer variable in the stack (4 bytes - 32bitsystem or 8 bytes for 64 bit system)
+
+    2- passing by reference: which is the address of the variable that the pointer points to.
 
 
 **3- Passing Variables by Reference**
@@ -111,8 +115,36 @@ Despite this, the reference itself does not involve creating a new pointer varia
 Although no new variable is explicitly created, the compiler handles the reference similarly to how it handles pointers, referring to the address of the original variable.
 
 
-#### Q) Why They both have the  Same Memory Usage although using a pointer requires additional copy of the pointer variable ?
+## Q) Why They both have the  Same Memory Usage although using a pointer requires additional copy of the pointer variable ?
 
+The idea that pointers and references have the same memory usage due to an "additional copy" of the pointer variable holds true only in specific contexts, like function parameter passing, but not in local scope.
+
+**Why They May Seem Similar**
+
+### 1- Function Parameter Passing:
+
+Both pointers and references pass a memory address (e.g., 8 bytes on a 64-bit system).
+
+**Pointer:** The pointer variable (8 bytes) is copied and passed.
+
+**Reference:** Often implemented as a pointer, passing an address (8 bytes).
+
+**Result:** Similar memory usage in this context.
+
+
+### 2- Local Scope:
+
+**Pointer:** Requires memory (e.g., 8 bytes) to store the address.
+
+**Reference:** Typically optimized to directly use the original variable, using no extra memory.
+
+**Result:** Pointers consume more memory locally.
+
+
+### Conclusion
+
+In function calls, pointers and references often have similar memory usage due to passing an address. In local scope, references may use no extra memory, unlike pointers. The "additional copy" is just the pointer’s address storage, not the data, clarifying their memory usage differences.
+This statment is true when it comes 
 In both cases, the function needs to access the original variable via its memory address. Here’s why the memory usage is the same:
 
 **Compiler Implementation:**
@@ -138,5 +170,5 @@ Pointers are machine addresses with an associated type at compile time.
 **Bjarne on References**
 A reference only refer to one thing and that's it.
 
---
+---
 
