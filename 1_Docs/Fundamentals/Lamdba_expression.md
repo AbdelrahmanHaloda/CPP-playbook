@@ -1,4 +1,14 @@
-### <u>Lambda expression "Lambda" for short</u>
+## Lambda expression "Lambda" for short
+
+
+### Resources
+
+[cppreference: Lambda Expressions](https://en.cppreference.com/w/cpp/language/lambda)
+
+[C++ Lambda Expressions - LearnCpp](https://www.learncpp.com/cpp-tutorial/introduction-to-lambdas/)
+
+---
+
 
 With a Lambda you can easily create simple function objects.
 
@@ -139,5 +149,127 @@ e) ID in Main = 1
 f) ID in Lambda = 2
 a) ID in Lambda = 2
 ```
+
+---
+
+## Quick Recap Version
+
+### Basic Syntax
+
+
+```cpp
+
+[ capture ] ( parameters ) -> return_type {
+    // function body
+};
+
+```
+
+### Example
+
+```c++
+
+auto add = [](int a, int b) -> int {
+    return a + b;
+};
+std::cout << add(2, 3); // Output: 5
+
+```
+
+### Parameters and Return Type
+Parameters: like normal function parameters.
+
+Return type: optional if the type is deducible.
+
+```c++
+
+auto square = [](int x) { return x * x; };          // return type deduced
+auto multiply = [](int a, int b) -> int { return a * b; };  // explicit
+
+```
+
+### Mutable Lambdas
+Use mutable to allow modifying captured by-value variables.
+
+```c++
+
+int x = 10;
+auto f = [x]() mutable {
+    x += 5; // OK because it's mutable
+    std::cout << x;
+};
+f(); // Output: 15
+std::cout << x; // Output: 10 (original unchanged)
+
+```
+
+### Lambdas in STL Algorithms
+
+```c++
+std::vector<int> v{1, 2, 3, 4};
+std::for_each(v.begin(), v.end(), [](int x) {
+    std::cout << x << " ";
+});
+```
+
+### Returning a Lambda
+
+```c++
+
+auto make_incrementor(int n) {
+    return [n](int x) { return x + n; };
+}
+auto add5 = make_incrementor(5);
+std::cout << add5(10); // Output: 15
+
+```
+
+### Capturing this Pointer
+
+```c++
+
+class MyClass {
+    int offset = 5;
+public:
+    void show() {
+        auto f = [this](int x) { std::cout << x + offset; };
+        f(10); // Output: 15
+    }
+};
+
+```
+
+### Lambda as Function Pointer
+
+```cpp
+
+auto f = [](int x) { return x + 1; };
+int (*fp)(int) = f; // only works if lambda has no capture
+
+```
+
+### Generic Lambdas (C++14+)
+
+```c++
+
+auto add = [](auto a, auto b) {
+    return a + b;
+};
+std::cout << add(1, 2);       // Output: 3
+std::cout << add(1.5, 2.5);   // Output: 4.0
+
+```
+
+### Immediately Invoked Lambda (IIFE)
+
+```cpp
+
+int result = [](int a, int b) {
+    return a * b;
+}(3, 4); // Output: 12
+
+```
+
+🧠 Tip: Lambdas are just syntactic sugar for callable objects.
 
 ---
