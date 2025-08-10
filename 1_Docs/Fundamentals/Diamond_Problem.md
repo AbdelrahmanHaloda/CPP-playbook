@@ -3,7 +3,7 @@ The **"diamond problem"** is a term used in object-oriented programming, particu
 
 Consider the following example:
 
-```
+```c++
 /* Vehicle abstract Class */
 class Vehicle{
     public:
@@ -38,7 +38,7 @@ int main(){
 ```
 **o/p**
 
-```
+```shell
 /tmp/o9JxK2zOXk.cpp:33:16: error: request for member 'Move' is ambiguous
    33 |     amphibious.Move();  // Conflict between the Move() API (Boat or Car !!)
       |                ^~~~
@@ -53,4 +53,35 @@ int main(){
       |          ^~~~
 ```
 
+---
+
+## Dimaond issue solution:
+
+The solution requires two essential steps that solve two different problems:
+
+#### 1- Use virtual Inheritance
+
+What to do: The intermediate classes (Car, Boat) must inherit from the common base (Vehicle) using the virtual keyword.
+
+```c++
+class Car : public virtual Vehicle { ... };
+
+class Boat : public virtual Vehicle { ... };
+
+```
+Why: This solves the data and type ambiguity. It ensures the final AmphibiousCar object contains only one shared instance of the Vehicle base, preventing duplicate data and allowing safe polymorphic casting.
+
+#### 2- Override the Ambiguous Function
+
+The final class (AmphibiousCar) must provide its own implementation of the conflicting function (Move()).
+
+```c++
+class AmphibiousCar : public Boat, public Car {
+public:
+    void Move() override { /* Your explicit logic here */ }
+};
+```
+Why: This solves the function call ambiguity. It forces you to explicitly tell the compiler which logic to run, removing any doubt.
+
+In short, virtual inheritance fixes the object's structure, and overriding the function fixes its behavior. Both are required for a complete and correct solution.
 

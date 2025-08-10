@@ -22,7 +22,8 @@ printf("%s",str);
 - array initializer syntax is used, such as int a[10] = {}
 - it is a global or extern variable
 - it is defined static The behavior of the following code is potentially undefined:
-```
+
+```c++
 int a;
 int b=a*42;
 printf("%d",b);
@@ -30,7 +31,8 @@ printf("%d",b);
 
 4- **Incorrect pairing** of allocation and deallocation Freeing a block of memory more than once will cause a program to crash. This can happen when a block of memory is freed that has never been allocated or has been freed before. Such behavior could also occur when improper pairings of allocation and deallocation are used such as using malloc() with delete or new with free(). 
 In this first example, the wrong new and delete are paired
-```
+
+```c++
 double *pDbl=new double[5];
 delete pDbl;
 ```
@@ -48,7 +50,7 @@ strcpy(pStr, "Invalid Access");  // dangling pointer
 ```
 ---
 ### Helper tools to perform automatic analyses '
-Valgrind, a free software for Linux and Mac that is able to automatically detect memory. 
+**Valgrind**, a free software for Linux and Mac that is able to automatically detect memory. 
 With recent versions of MacOS, occasional difficulties have been reported with
 installing Valgrind. A working version for MacOS Mojave can be downloaded from GitHub via Homebrew: 
 [GitHub - sowson/valgrind: Experimental Version of Valgrind for macOS 10.14.6 Mojave](https://github.com/sowson/valgrind)

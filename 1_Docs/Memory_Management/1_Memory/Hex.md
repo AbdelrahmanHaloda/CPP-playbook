@@ -1,4 +1,4 @@
-# Q1) why it is preferable to use hex numbers instead of binary ?
+## Q1) why it is preferable to use hex numbers instead of binary ?
 
 **Readability:** 
 - It is significantly easier for a human to understand hex numbers as they  resemble the decimal numbers we are used to. It is simply not intuitive to look at binary numbers and decide how big they are and how they relate to another binary number.
