@@ -1,30 +1,44 @@
 #include <iostream>
 
+
+class myData
+{
+    public:
+        int getData()
+        {
+            return 10;
+        }
+};
+
 int main()
 {
+
+    myData objData;
+
+    objData.getData();
     /* Define an integer variable */
-    int id = 0; 
+    // int id = 0; 
 
-    /* capture by reference (immutable) */
-    auto f0 = [&id]() { std::cout << "a) ID in Lambda = " << id << std::endl; };
+    // /* capture by reference (immutable) */
+    // auto f0 = [&id]() { std::cout << "a) ID in Lambda = " << id << std::endl; };
 
-    /* capture by value (mutable) */
-    auto f1 = [id]() mutable { std::cout << "b) ID in Lambda = " << ++id << std::endl; };
-    f1(); // call the closure and execute the code witin the Lambda
+    // /* capture by value (mutable) */
+    // auto f1 = [id]() mutable { std::cout << "b) ID in Lambda = " << ++id << std::endl; };
+    // f1(); // call the closure and execute the code witin the Lambda
     
-    std::cout << "c) ID in Main = " << id << std::endl;
+    // std::cout << "c) ID in Main = " << id << std::endl;
 
-    /* capture by reference (mutable) */
-    auto f2 = [&id]() mutable { std::cout << "d) ID in Lambda = " << ++id << std::endl; };
-    f2(); 
-    std::cout << "e) ID in Main = " << id << std::endl;
+    // /* capture by reference (mutable) */
+    // auto f2 = [&id]() mutable { std::cout << "d) ID in Lambda = " << ++id << std::endl; };
+    // f2(); 
+    // std::cout << "e) ID in Main = " << id << std::endl;
 
-    /* pass parameter */
-    auto f3 = [](const int id) { std::cout << "f) ID in Lambda = " << id << std::endl; };   
-    f3(++id);
+    // /* pass parameter */
+    // auto f3 = [](const int id) { std::cout << "f) ID in Lambda = " << id << std::endl; };   
+    // f3(++id);
 
-    /* observe the effect of capturing by reference at an earlier point in time */
-    f0(); 
+    // /* observe the effect of capturing by reference at an earlier point in time */
+    // f0(); 
 
     return 0;
 }
