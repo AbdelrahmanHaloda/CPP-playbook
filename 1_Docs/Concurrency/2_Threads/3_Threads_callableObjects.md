@@ -33,7 +33,7 @@ When you overload the operator(), objects of the class can be called like functi
 using Functor:
 The below code, a class is defined that has an overloaded ()-operator.
 
-```
+```c++
 #include <iostream>
 #include <thread>
 
@@ -92,7 +92,7 @@ There are three ways of forcing the compiler to consider the line as the first c
 **Example 2**
 The following code shows all three variants:
 
-```
+```c++
 #include <iostream>
 #include <thread>
 
@@ -134,7 +134,7 @@ int main()
 
 **Example 2 o/p:**
 The put of this code sample shows that all three threads are executed and the Vehicle object is properly initialized:
-```
+```shell
 Vehicle #1 has been created
 Vehicle #2 has been created
 Finished work in main 
@@ -152,7 +152,7 @@ A Lambda is just an object and, like other objects it may be copied, passed as a
 **Example 3:**
 The below code starts a thread and pass it a Lambda object to execute:
 
-```
+```c++
 #include <iostream>
 #include <thread>
 
@@ -186,7 +186,7 @@ int main()
 ```
 
 **Example 3 o/p:**
-```
+```shell
 c) ID in Main (call-by-value) = 1
 b) ID in Thread (call-by-value) = 0
 a) ID in Thread (call-by-reference) = 1

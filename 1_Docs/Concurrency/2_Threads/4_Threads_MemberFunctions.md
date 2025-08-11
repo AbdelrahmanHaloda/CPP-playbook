@@ -8,7 +8,7 @@ The Vehicle object v1 is passed to the thread function by value, thus a copy is 
 The second Vehicle object v2 is instead passed by reference. 
 Therefore, changes to its _id variable will also be visible in the main thread.
 
-```
+```c++
 #include <iostream>
 #include <thread>
 
@@ -46,7 +46,7 @@ int main()
 ```
 
 **Example 1 o/p:**
-```
+```shell
 Vehicle ID=0
 Vehicle ID=2
 ```
@@ -55,7 +55,7 @@ In the previous example, we have to ensure that the existence of v2 outlives the
 
 **Example 2:**
 Using a heap-allocated object and a reference-counted pointer to ensure that the object lives as long as it takes the thread to finish its work.
-```
+```c++
 #include <iostream>
 #include <thread>
 
@@ -90,7 +90,7 @@ int main()
 ```
 
 **Example 2 o/p:**
-```
+```shell
 Vehicle ID=1
 ```
 ---

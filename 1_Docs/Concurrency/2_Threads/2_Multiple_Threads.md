@@ -15,7 +15,7 @@ In the main thread, the program flow is forked into three parallel branches. In 
 
 **Example 1:**
 
-```
+```c++
 #include <iostream>
 #include <thread>
 #include <vector>
@@ -83,7 +83,7 @@ A program may run correctly for thousands of times and suddenly, due to a partic
 **Example 2:**
 Let us adjust the program code from the previous example and use a Lambda instead of the function printHello(). Also, we will pass the loop counter i into the Lambda to enforce an individual wait time for each thread. The idea is to prevent the interleaving of text on the command line which we saw in the previous example.
 
-```
+```c++
 #include <iostream>
 #include <thread>
 #include <chrono>

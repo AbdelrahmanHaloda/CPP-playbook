@@ -39,7 +39,7 @@ The below code use **`std::async`**:
 - That **`std::async`** returns a **future**.
 - Also, we do not need to call **`join()`** any more like we did with **`std::thread`** because with **async**, the thread destructor will be called automatically - which reduces the risk of a concurrency bug.
 
-```
+```c++
 #include <iostream>
 #include <thread>
 #include <future>
@@ -106,7 +106,7 @@ int main()
 ```
 
 **Example 1 o/p:**
-```
+```shell
 Main thread id = 140506334226240
 Worker thread id = 140506316424960 Using async parameter
 Worker thread id = 140506334226240 Using deferred parameter

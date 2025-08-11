@@ -229,3 +229,83 @@ Destructor: Freed memory.
    1- perform a shallow copy of the memory handler.
    2- perform ownership management by copying the memory handler from the orignal source to it then invalidating the memory handler in the orignal.
 This can't be done using lvalue reference since lvalue references can't bind to rvalue except if they are const which will make the step number 2 impossible (invalidating the memory handler in the orignal source).
+
+---
+
+
+### Binding rules for lvalues and rvalues in C++.
+
+**Think of it like this:**
+
+- An **lvalue** is something with a persistent address, like a house. 🏡
+
+- An **rvalue** is something temporary, like a number in a calculation or a flyer handed to you. 📄
+
+#### Lvalue Reference (T&)
+An lvalue reference is a standard reference that acts as an alias for an existing object.
+
+**Can bind to:** lvalues only.
+
+**Cannot bind to:** rvalues. This prevents you from getting a reference to a temporary object that will disappear, leaving you with a dangling reference.
+
+```c++
+
+int x = 10; // x is an lvalue
+
+// --- Valid ---
+int& ref_to_lvalue = x; // OK: lvalue reference binds to lvalue
+
+// --- Invalid ---
+// int& ref_to_rvalue = 10; // ERROR: Cannot bind lvalue reference to rvalue
+```
+
+#### Rvalue Reference (T&&)
+An rvalue reference is specifically designed to bind to temporary objects. It's the key mechanism that enables move semantics.
+
+**Can bind to:** rvalues only.
+
+**Cannot bind to:** lvalues.
+
+```c++
+int x = 10; // x is an lvalue
+
+// --- Valid ---
+int&& ref_to_rvalue = 10; // OK: rvalue reference binds to rvalue
+int&& moved_ref = std::move(x); // OK: std::move casts x to an rvalue
+
+// --- Invalid ---
+// int&& ref_to_lvalue = x; // ERROR: Cannot bind rvalue reference to lvalue
+```
+
+#### Const Lvalue Reference (const T&)
+This is the most flexible type of reference. Because it's const, it promises not to change the object it refers to, making it safe to bind to anything.
+
+**Can bind to:** both lvalues and rvalues.
+
+This is why it's the preferred way to pass objects to functions when you only need read-only access and want to avoid making a copy.
+
+```c++
+int x = 10; // x is an lvalue
+
+// --- Valid ---
+const int& ref_to_lvalue = x;   // OK: const lvalue reference binds to lvalue
+const int& ref_to_rvalue = 10;  // OK: const lvalue reference binds to rvalue
+```
+
+#### Summary Table
+Here's a table summarizing which reference type can bind to which value category.
+
+
+| Reference Type | Lvalue (`int x`) | Rvalue (`10`) |
+| :--- | :---: | :---: |
+| **Lvalue Reference (`int&`)** | ✅ Yes | ❌ No |
+| **Rvalue Reference (`int&&`)**| ❌ No | ✅ Yes |
+| **Const Lvalue Reference (`const int&`)**| ✅ Yes | ✅ Yes |
+| **Const Rvalue Reference** (`const int&&`) | ❌ No | ✅ Yes |
+
+**Note:**
+A const rvalue reference (const T&&) is a reference that binds only to rvalues but prevents you from modifying them.
+
+In practice, it is almost never used because it creates a logical contradiction. The entire point of an rvalue reference (T&&) is to bind to a temporary object so you can safely modify it (i.e., "steal" its resources via move semantics). Adding const prevents this modification, defeating the purpose.
+
+---

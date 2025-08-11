@@ -1,4 +1,5 @@
 #include <iostream>
+#include <thread>
 
 
 class myData
@@ -13,9 +14,9 @@ class myData
 int main()
 {
 
-    myData objData;
+    // myData objData;
 
-    objData.getData();
+    // objData.getData();
     /* Define an integer variable */
     // int id = 0; 
 
@@ -39,6 +40,14 @@ int main()
 
     // /* observe the effect of capturing by reference at an earlier point in time */
     // f0(); 
+
+
+
+    unsigned int nThreads = std::thread::hardware_concurrency();
+    std::cout << "Hello concurrent world from main! Thread id = " << std::this_thread::get_id() << std::endl;
+    std::cout << "This machine supports concurrency with " << nThreads << " concurrent threads available" << std::endl;
+
+
 
     return 0;
 }

@@ -16,7 +16,7 @@ Now, A running program consists of at least one thread. When the **main function
 **Example 1:**
 The code below prints the thread identifier of the main thread and outputs it to the console.
 `std::this_thread::get_id()`
-```
+```c++
 #include <iostream>
 #include <thread>
 
@@ -36,7 +36,7 @@ Hello concurrent world from main! Thread id = 1
 **Example 2:**
 The code below prints the number of concurrent threads supported to the console.
 `uint8_t nThreads = std::thread::hardware_concurrency();`
-```
+```c++
 #include <iostream>
 #include <thread>
 
@@ -63,7 +63,7 @@ To start a second thread in addition to the main thread of the program,
 
 Once the thread enters the runnable state, the execution of the associated thread function may start at any point in time.
 
-```
+```c++
 // Create a thread object
 std::thread thread1(threadFunction);
 ```
@@ -75,7 +75,7 @@ To prevent this from happening and have the main program wait for the thread to 
 **Example 3:**
 - The code below shows how to use `join()` to ensure that `main()` waits for the thread **thread1** to finish its operations before returning. It uses the function `sleep_for()`, which pauses the execution of the respective threads for a specified amount of time. The idea is to simulate some work to be done in the respective threads of execution.
 
-```
+```c++
 #include <iostream>
 #include <thread>
 
@@ -107,6 +107,8 @@ Finished work in main
 Finished work in thread
 ```
 
+---
+
 #### Q) Why pthread library is needed ?
 
 - **C++ Standard Library and Threads:**
@@ -129,7 +131,7 @@ One very important trait of concurrent programs is their **non-deterministic beh
 **Example 4:**
 In the code below, the amount of work to be performed both in the thread function and in main has been split into two separate jobs.
 
-```
+```c++
 #include <iostream>
 #include <thread>
 
@@ -188,7 +190,7 @@ In the previous example (Example 4), the order of execution is determined by the
 **Example 5:**
 In the the below code, the `.join()` has been moved to before the work in main(). 
 
-```
+```c++
 #include <iostream>
 #include <thread>
 
@@ -243,7 +245,7 @@ There are some situations however, where it might make sense to not wait for a t
 detach is called on the thread object, which causes the main thread to immediately continue until it reaches the end of the program code and returns.
 **Note** that a detached thread can not be joined ever again.
 
-```
+```c++
 #include <iostream>
 #include <thread>
 

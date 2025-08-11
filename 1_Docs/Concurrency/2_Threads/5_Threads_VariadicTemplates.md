@@ -7,7 +7,7 @@ Before C++11, classes and functions could only accept a fixed number of argument
 
 **Example 1:**
 Using variadic templates.
-```
+```c++
 #include <iostream>
 #include <thread>
 #include <string>
@@ -47,7 +47,7 @@ int main()
 **Example 1 o/p:**
 As seen in the code example above, a first thread object is constructed by passing it the function printID and an integer argument. Then, a second thread object is constructed with a function printIDAndName, which requires an integer and a string parameter. If only a single argument was provided to the thread when calling printIDAndName, a compiler error would occur (see std::thread t3 in the example) - which is the same type checking we would get when calling the function directly.
 
-```
+```shell
 /usr/include/c++/7/thread: In instantiation of ‘struct std::thread::_Invoker<std::tuple<void (*)(int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >), int> >’:
 /usr/include/c++/7/thread:127:22:   required from ‘std::thread::thread(_Callable&&, _Args&& ...) [with _Callable = void (&)(int, std::__cxx11::basic_string<char>); _Args = {int&}]’
 example_1.cpp:25:40:   required from here
@@ -86,7 +86,7 @@ example_1.cpp:25:40:   required from here
 **Example 2:**
 There is one more difference between calling a function directly and passing it to a thread: With the former, arguments may be passed by value, by reference or by using move semantics - depending on the signature of the function. When calling a function using a variadic template, the arguments are by default either moved or copied - depending on wether they are rvalues or lvalues. There are ways however which allow us to overwrite this behavior. If you want to move an lvalue for example, we can call std::move. In the following example, two threads are started, each with a different string as a parameter. With t1, the string name1 is copied by value, which allows us to print name1 even after join has been called. The second string name2 is passed to the thread function using move semantics, which means that it is not available any more after join has been called on t2.
 
-```
+```c++
 
 #include <iostream>
 #include <thread>
@@ -121,7 +121,7 @@ int main()
 
 **Example 2 o/p:**
 The console output shows how using copy-by-value and std::move affect the string parameters:
-```
+```shell
 Name (from Thread) = MyThread1
 Name (from Thread) = MyThread2
 Name (from Main) = MyThread1
@@ -132,7 +132,7 @@ Name (from Main) =
 In the following example, the **signature of the thread function is modified** to take a non-const reference to the string instead.
 When passing the string variable name to the thread function, we need to explicitly mark it as a reference, so the compiler will treat it as such. This can be done by using the std::ref function.
 
-```
+```c++
 #include <iostream>
 #include <thread>
 #include <string>
@@ -165,7 +165,9 @@ int main()
 **Example 3 o/p:**
 In the console output it becomes clear that the string has been successfully modified within the thread function before being passed to main.
 Even though the code works, we are now sharing mutable data between threads.
-```
+```shell
 MyThread (from Thread)
 MyThread (from Thread) (from Main)
 ```
+
+---

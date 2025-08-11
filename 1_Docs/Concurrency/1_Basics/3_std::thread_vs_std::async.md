@@ -27,7 +27,7 @@ If no policy is specified, the implementation decides whether to run the functio
 ---
 
 Example: 
-```
+```c++
 #include <iostream>
 #include <thread>
 #include <future>
