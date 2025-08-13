@@ -11,7 +11,7 @@ Allows multiple acquisitions of the **mutex** from the same **thread**.
 Similar to **mutex**, but it comes with two more methods **`try_lock_for()`** and **`try_lock_until()`** that try to acquire the **mutex** for a period of time or until a moment in time is reached.
 
 - **recursive_timed_mutex:** is a combination of **timed_mutex** and **recursive_mutex**.
-- 
+  
 ---
 
 ### <u>Using a Mutex To Protect Shared Data</u>
@@ -37,7 +37,7 @@ When several **threads** were to try to acquire and lock the **mutex**, only one
 **Example 1:**
 Introducing data race which leads to undefiend behaviour.
 
-```
+```c++
 #include <iostream>
 #include <thread>
 #include <vector>

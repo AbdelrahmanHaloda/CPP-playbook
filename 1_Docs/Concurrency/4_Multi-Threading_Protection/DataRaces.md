@@ -9,14 +9,14 @@ One thread wants to increment a variable x, whereas the other thread wants to pr
 
 ![DataRaces](/Users/abdelrahmanhaloda/Desktop/AHossam/REPOS/NanoDegreeCPP/1_Docs/Concurrency/Images/DataReaces.png)
 
-In this example, one safe way of passing data to a thread would be to carefully synchronize the two threads using either **`join()`** or the `**promise-future concept**` that can guarantee the availability of a result. Data races are always to be avoided. Even if nothing bad seems to happen, they are a bug and should always be treated as such. Another possible solution for the above example would be to make a copy of the original argument and pass the copy to the thread, thereby preventing the data race.
+In this example, one safe way of passing data to a thread would be to carefully synchronize the two threads using either **`join()`** or the **`promise-future concept`** that can guarantee the availability of a result. Data races are always to be avoided. Even if nothing bad seems to happen, they are a bug and should always be treated as such. Another possible solution for the above example would be to make a copy of the original argument and pass the copy to the thread, thereby preventing the data race.
 
 ---
 ### <u>Passing data to a thread by value</u>
 
 **Example 1:**
 In the below code, an instance of the proprietary class Vehicle is created and passed to a thread by value, thus making a copy of it.
-```
+```c++
 #include <iostream>
 #include <thread>
 #include <future>
@@ -67,7 +67,7 @@ int main()
 
 Example 1 o/p:
 Passing data to a thread in this way is a clean and safe method as there is no danger of a data race - at least when atomic data types such as integers, doubles, chars or booleans are passed.
-```
+```shell
 Vehicle #0 Default constructor called
 Vehicle #1 Initializing constructor called
 Vehicle #3
@@ -76,7 +76,7 @@ Vehicle #3
 
 **Example 2:**
 The below code illustrates the case of hidden pointer in the Vechile class by adding a new member variable to the Vehicle class, which is a pointer to a string object, as well as the corresponding getter and setter functions.
-```
+```c++
 #include <iostream>
 #include <thread>
 #include <future>
@@ -127,7 +127,7 @@ int main()
 
 **Example 2 o/p:**
 The basic program structure is mostly identical to the previous example with the object v0 being copied by value **(shallow copy - default copy constructor)** when passed to the thread function. This time however, even though a copy has been made, the original object v0 is modified, when the thread function sets the new name. This happens because the member _name is a pointer to a string and after copying, even though the pointer variable has been duplicated, it still points to the same location as its value (i.e. the memory location) has not changed.
-```
+```shell
 Vehicle #0 Default constructor called
 Vehicle #1 Initializing constructor called
 Vehicle 2
@@ -139,7 +139,7 @@ Vehicle 2
 **Example 3:**
 The below code fix the above issue by adding a piece of code that overwrites the default copy constructor and can be modified to make a customized copy of the data members to perform **"deep copy"**.
 
-```
+```c++
 #include <iostream>
 #include <thread>
 #include <future>
@@ -202,7 +202,7 @@ int main()
 ```
 
 **Example 3 o/p:**
-```
+```shell
 Vehicle #0 Default constructor called
 Vehicle #1 Initializing constructor called
 Vehicle 3
