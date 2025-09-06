@@ -36,7 +36,8 @@ But if the object is available you can use a reference instead but u must inital
 
 **Example;**
 If a class has a reference attribute, it must be initialized using an initializer list.
-```
+
+```c++
 #include <iostream>
 
 class MyClass {
@@ -115,7 +116,7 @@ Despite this, the reference itself does not involve creating a new pointer varia
 Although no new variable is explicitly created, the compiler handles the reference similarly to how it handles pointers, referring to the address of the original variable.
 
 
-## Q) Why They both have the  Same Memory Usage although using a pointer requires additional copy of the pointer variable ?
+#### Q) Why They both have the  Same Memory Usage although using a pointer requires additional copy of the pointer variable ?
 
 The idea that pointers and references have the same memory usage due to an "additional copy" of the pointer variable holds true only in specific contexts, like function parameter passing, but not in local scope.
 
@@ -171,4 +172,7 @@ Pointers are machine addresses with an associated type at compile time.
 A reference only refer to one thing and that's it.
 
 ---
+
+
+add excerise for this from Moatesm slides. AbdelrahmanHossam - screenshot already in Desktop
 

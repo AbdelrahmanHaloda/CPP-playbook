@@ -18,8 +18,7 @@ The reason is simple: if your class needs a custom destructor to release a resou
 Any change in **destructor** or **copy constructor** or **copy assigment operator** or **move constructor** or **move assigment operator** Must be followed by implementing the other 4.
 
 
-```
-
+```c++
 #include <iostream>
 #include <algorithm> // For std::copy
 #include <utility>   // For std::swap and std::move
@@ -121,9 +120,10 @@ public:
 
 ---
 
-### The Rule of Zero: A Modern Alternative
-Before diving into the code, it's worth noting the modern C++ best practice: the Rule of Zero. This rule suggests you design your classes so they don't need to manage resources directly. Instead, use existing resource-managing classes from the standard library, like std::unique_ptr for pointers or std::vector for dynamic arrays.
+why copy constructor has this signature
 
-When you follow the Rule of Zero, the compiler-generated special member functions work correctly, and you don't need to write any of the five yourself. It's simpler and safer. However, understanding the Rule of Five is still essential for learning C++ and for situations where you must manage a resource manually.
+    `MyMovableClass(const MyMovableClass& source)`
 
----
+- reference beucase if its not it will be recursive constructor invoking as source will need constructor to get instantitated.
+- const so it can be bind to rvalue as there are cases it is needed to invoke copy constructor not move constructor for rvalue ? check with chatgpt though..
+- const is also used to protect the source data as you should not modify it, the intention is only to copy it so const make sure to protect the source data since u receive it as reference.

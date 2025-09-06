@@ -2,7 +2,8 @@
 lvalues, rvalues and especially rvalue references is an important prerequisite for understanding the concept of moving data structures.
 
 Let us consider the function below which takes an rvalue reference as its parameter.
-```
+
+```c++
 #include <iostream>
 
 void myFunction(int &&val)

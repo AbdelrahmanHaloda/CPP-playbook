@@ -1,0 +1,431 @@
+# C++ Functors
+
+A “functor” (a.k.a. function object) is any object you can call like a function by **overloading operator()**.
+They’re lightweight, inlinable, can hold state, and are the backbone of STL algorithms (comparators, hashers, predicates, transforms).
+
+## 1) Definition
+
+```c++
+struct Multiplier {
+    int factor;
+    int operator()(int x) const noexcept { return x * factor; }
+};
+
+Multiplier times3{3}; // normal object instantiation
+int y = times3(10); // calling object as a function, o/p =  30
+```
+
+#### Key points
+
+A functor is simply a type with operator().
+
+Can be stateless (empty) or stateful (holds config/counters).
+
+Zero runtime indirection; great for inlining and templates.
+
+---
+
+## 2) When to Use (Typical Use Cases)
+
+STL algorithms: std::sort, std::transform, std::for_each, std::count_if, etc.
+
+Comparators & policies: ordering in std::set/std::map, std::priority_queue, custom strategies.
+
+Hashers & key equality: for std::unordered_*.
+
+Hot paths: when you want max performance (avoid std::function’s type-erasure).
+
+Named, reusable callables: clearer than repeating a lambda; easier to test/mock.
+
+Stateful operations: counters, rolling accumulators, configurable filters.
+
+Compile-time evaluation: constexpr operator() for constant expressions.
+
+Template parameters: pass functors as policy/behavior at compile time (C++20 structural types).
+
+---
+
+## 3) Topic Dependencies (What to know first)
+
+Classes/structs, constructors, member data.
+
+Operator overloading (operator()).
+
+Const-correctness (const call operator).
+
+Templates (generic operator()).
+
+Perfect forwarding & std::invoke (for wrappers).
+
+Lambdas vs functors vs std::function (trade-offs).
+
+STL algorithms & containers (comparators, hashers, predicates).
+
+Transparent comparators (is_transparent) & heterogeneous lookup (C++14+).
+
+constexpr & noexcept.
+
+---
+
+## 4) Core Patterns (with Examples)
+
+### 4.1 Stateless vs. stateful
+
+```c++
+struct IsEven { // stateless
+    bool operator()(int x) const noexcept { return (x & 1) == 0; }
+};
+
+struct InRange { // stateful
+    int lo, hi;
+    bool operator()(int x) const noexcept { return lo <= x && x <= hi; }
+};
+```
+
+### 4.2 Generic (templated) call operator
+```c++
+struct Adder {
+    template<class T, class U>
+    auto operator()(T&& a, U&& b) const -> decltype(std::forward<T>(a) + std::forward<U>(b)) {
+        return std::forward<T>(a) + std::forward<U>(b);
+    }
+};
+```
+
+### 4.3 Perfect-forwarding wrapper (instrumentation)
+
+```c++
+#include <utility>
+#include <functional>
+#include <iostream>
+
+template<class F>
+struct Logged {
+    F f;
+    template<class... Args>
+    decltype(auto) operator()(Args&&... args) {
+        std::cout << "calling...\n";
+        return std::invoke(f, std::forward<Args>(args)...);
+    }
+};
+
+
+// usage
+auto sum = [](int a, int b){ return a + b; };
+Logged logger{sum};
+int r = logger(3, 4); // prints, then returns 7
+```
+
+### 4.4 constexpr functor (usable at compile time)
+```c++
+struct Square {
+    constexpr int operator()(int x) const noexcept { return x * x; }
+};
+
+static_assert(Square{}(4) == 16);
+```
+
+### 4.5 Comparators for ordering
+```c++
+#include <vector>
+#include <algorithm>
+#include <tuple>
+
+struct Person { int id; std::string first, last; };
+
+struct ByNameThenId {
+    bool operator()(Person const& a, Person const& b) const noexcept {
+        return std::tie(a.last, a.first, a.id) < std::tie(b.last, b.first, b.id);
+    }
+};
+
+std::vector<Person> v = /*...*/;
+std::sort(v.begin(), v.end(), ByNameThenId{});
+```
+
+### 4.6 Transparent comparators (heterogeneous lookup)
+
+```
+#include <set>
+#include <string>
+#include <string_view>
+
+struct StrLess {
+    using is_transparent = void; // enables heterogeneous lookup
+    bool operator()(std::string_view a, std::string_view b) const noexcept { return a < b; }
+};
+
+std::set<std::string, StrLess> s = {"alice","bob","carol"};
+bool has = s.contains("bob"sv); // no temporary std::string constructed
+```
+
+### 4.7 Custom hasher & key_equal with heterogeneous lookup
+```C++
+#include <unordered_set>
+#include <string>
+#include <string_view>
+
+struct SvHash {
+    using is_transparent = void;
+    size_t operator()(std::string_view sv) const noexcept {
+        // very simple hash for demo; use a better one in production
+        std::hash<std::string_view> h;
+        return h(sv);
+    }
+};
+
+struct SvEq {
+    using is_transparent = void;
+    bool operator()(std::string_view a, std::string_view b) const noexcept { return a == b; }
+};
+
+std::unordered_set<std::string, SvHash, SvEq> us = {"aa","bb","cc"};
+bool has = us.contains("bb"sv); // no allocation
+```
+
+### 4.8 Stateful counting (e.g., for diagnostics)
+```c++
+#include <algorithm>
+#include <vector>
+
+struct CountCalls {
+    mutable size_t n{0};
+    bool operator()(int x) const noexcept {
+        ++n;
+        return x > 0;
+    }
+};
+
+std::vector<int> xs = {-1, 2, 0, 5};
+CountCalls pred;
+auto cnt = std::count_if(xs.begin(), xs.end(), pred);
+// pred.n now holds number of invocations
+```
+
+### 4.9 Policy as non-type template parameter (C++20 structural types)
+```c++
+template<class T>
+struct Add {
+    constexpr T operator()(T a, T b) const noexcept { return a + b; }
+};
+
+template<auto Op>
+struct Accumulate {
+    template<class It, class T>
+    T operator()(It first, It last, T init) const {
+        for (; first != last; ++first) init = Op(init, *first);
+        return init;
+    }
+};
+
+constexpr Add<int> add{};
+Accumulate<add> acc; // Op is a structural object
+```
+
+---
+
+## 5) STL Interop (Cheat-Sheet)
+
+Sorting/ordering: std::sort(vec.begin(), vec.end(), Comp{})
+
+Heap/priority queue: std::priority_queue<T, Container, Comp>
+
+Associative (std::set/map): Compare functor defines strict weak ordering
+
+Unordered (std::unordered_*): Hash and KeyEqual functors
+
+Algorithms: predicates (count_if), projections/transforms (transform), actions (for_each)
+
+Standard functors: std::less, std::greater, std::equal_to, std::plus, std::multiplies, std::logical_and, std::bit_and, std::hash<T>, etc.
+Many are transparent in C++14+ (check is_transparent availability by implementation).
+
+---
+
+## 6) Lambdas vs Functors vs std::function
+
+| Aspect         | Functor (class)                                     | Lambda                  | `std::function<R(…)>`                               |
+| -------------- | --------------------------------------------------- | ----------------------- | --------------------------------------------------- |
+| Type           | Named, explicit                                     | Unique closure type     | Type-erased wrapper                                 |
+| State          | Members                                             | Captures                | Heap SBO/alloc possible                             |
+| Overloads      | Yes (`operator()` overloads)                        | No (one call op)        | N/A                                                 |
+| Templated call | Yes                                                 | Generic lambda (C++14+) | N/A                                                 |
+| Inlining       | Excellent                                           | Excellent               | Often inhibited                                     |
+| Size           | Known at compile time                               | Known                   | Fixed wrapper (overhead)                            |
+| Use when       | Reusable, policy, performance, heterogeneous lookup | Local inline logic      | Need runtime polymorphism among arbitrary callables |
+
+---
+
+## 7) Corner Cases & Gotchas
+
+- **Strict weak ordering (for Compare):**
+
+    - Must be irreflexive (comp(x,x)==false), transitive, antisymmetric, transitively incomparable.
+
+    - Don’t write comparators using <=/>=. Use strict < style.
+
+    - Beware NaN with floating point: x < x is false; comparisons may break ordering. Prefer total ordering strategies if needed.
+
+- **Equality vs ordering:**
+
+    - In ordered containers, “equivalent” is defined by comparator (!(a<b) && !(b<a)), not by ==.
+
+- **Stateful functors & threads:**
+
+    - If the functor mutates internal state (e.g., counters), guard with sync when shared across threads.
+
+- **References as members:**
+
+    - Storing T& inside the functor ties lifetime to the referred object. Prefer pointers or std::reference_wrapper and document lifetime.
+
+- **Exception specs:**
+
+    - Mark noexcept when possible to help optimizations and container guarantees.
+
+- **Size bloat in templates:**
+
+    - Very large functors increase object size; keep state minimal.
+
+- **Copies vs moves:**
+
+    - Algorithms may copy predicates; ensure cheap/movable types. Consider = defaulted moves.
+
+- **Virtual operator():**
+
+    - Possible but rarely useful; usually prefer static polymorphism (templates).
+
+---
+
+## 8) Practical Tricks
+
+- Transparent lookup: add using is_transparent = void; and accept parameters by std::string_view to avoid constructing temporaries.
+
+- EBO (Empty Base Optimization): Compose functors as empty bases inside wrappers to erase size when stateless.
+
+- Overload set helper (for std::visit et al.):
+
+```c++
+template<class... Fs>
+struct Overload : Fs... { using Fs::operator()...; };
+template<class... Fs>
+Overload(Fs...) -> Overload<Fs...>;
+
+// usage:
+// std::visit(Overload{
+//   [](int){}, [](std::string const&){}, [](auto&&){/*...*/} }, var);
+```
+
+- Named, testable behavior: prefer a functor over “mysterious” lambdas when the callable is reused or deserves unit tests.
+
+- constexpr + inline singletons:
+
+```c++
+struct Comp { constexpr bool operator()(int a, int b) const noexcept { return a < b; } };
+inline constexpr Comp comp{}; // one global instance
+```
+
+- Projections with functors (C++20 ranges::sort has projections, but pre-C++20 you can encode projections into comparators).
+
+---
+
+## 9) Descriptive Mini-Examples
+
+### 9.1 std::transform with configuration
+
+```c++
+#include <vector>
+#include <algorithm>
+
+struct ScaleShift {
+    double a, b; // y = a*x + b
+    double operator()(double x) const noexcept { return a * x + b; }
+};
+
+std::vector<double> v{1,2,3};
+std::transform(v.begin(), v.end(), v.begin(), ScaleShift{2.0, 0.5}); // {2.5, 4.5, 6.5}
+```
+
+### 9.2 std::priority_queue as a min-heap
+
+```c++
+#include <queue>
+#include <vector>
+
+struct Greater {
+    bool operator()(int a, int b) const noexcept { return a > b; } // reverse
+};
+
+std::priority_queue<int, std::vector<int>, Greater> pq; // smallest on top
+```
+
+### 9.3 std::unordered_map with pair key
+
+```c++
+#include <unordered_map>
+#include <utility>
+
+struct PairHash {
+    size_t operator()(std::pair<int,int> p) const noexcept {
+        // simple combine; replace with robust hash in production
+        return std::hash<int>{}(p.first) * 1315423911u ^ std::hash<int>{}(p.second);
+    }
+};
+struct PairEq {
+    bool operator()(std::pair<int,int> a, std::pair<int,int> b) const noexcept {
+        return a.first==b.first && a.second==b.second;
+    }
+};
+
+std::unordered_map<std::pair<int,int>, int, PairHash, PairEq> m;
+```
+
+### 9.4 Compile-time dispatch via tag types
+
+```c++
+struct FastTag {}; struct PreciseTag {};
+
+struct Distance {
+    double operator()(FastTag, double dx, double dy) const noexcept { return dx*dx + dy*dy; }
+    double operator()(PreciseTag, double dx, double dy) const noexcept { return std::hypot(dx, dy); }
+};
+
+// usage:
+Distance dist;
+double a = dist(FastTag{}, 3, 4);    // 25
+double b = dist(PreciseTag{}, 3, 4); // 5
+```
+
+---
+
+## 10) Quick Checklist
+
+- Make operator() const unless you truly mutate state.
+
+- Add noexcept where correct.
+
+- For containers: ensure strict weak ordering or consistent equality.
+
+- Prefer transparent comparators/hashers to avoid temporaries.
+
+- Keep state small; rely on inlining.
+
+- Consider constexpr when possible.
+
+- Use functors over std::function in performance-critical templates.
+
+- Document lifetime if storing references.
+
+---
+
+## 11) TL;DR
+
+- Functor = object with operator().
+
+- Best for performance, reusability, state, and templates.
+
+- Prefer functors (or lambdas) over std::function in hot code.
+
+- For containers, get the ordering/equality rules right.
+
+- Use transparent comparators/hashers to reduce allocations.
+
+---

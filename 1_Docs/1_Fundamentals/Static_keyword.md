@@ -6,13 +6,13 @@ The static keyword in C++ is all about context. It changes a variable or functio
 When used inside a function, static creates a variable that persists between function calls. 
 It's initialized only once, the first time the function is called, and it exists for the entire duration of the program.
 
-- Lifetime: The entire program.
+- **Lifetime:** The entire program.
 
-- Scope: Only visible inside the function.
+- **Scope:** Only visible inside the function.
 
-- Analogy: It's like a scoreboard in an arcade game. Each time you play (call the function), you add to the same score. The score doesn't reset to zero for every new game. 🕹️
+- **Analogy:** It's like a scoreboard in an arcade game. Each time you play (call the function), you add to the same score. The score doesn't reset to zero for every new game. 🕹️
+
 ```c++
-
 #include <iostream>
 
 void counter()
@@ -39,7 +39,7 @@ When used inside a class, static creates members that belong to the class itself
 #### static Member Variables:
 - All objects of the class share a single copy of the static member variable.
 
-- Key Point: You must define and initialize the static member variable outside the class, in the global scope.
+- **Key Point:** You must define and initialize the static member variable outside the class, in the global scope.
 
 ```c++
 #include <iostream>
@@ -75,7 +75,7 @@ int main()
 
 - A static member function also belongs to the class, not an object. You can call it without creating an object of the class.
 
-- Key Limitation: A static function does not have a this pointer and can only access other static members (variables or functions) of the class.
+- **Key Limitation:** A static function does not have a this pointer and can **only** access other static members (variables or functions) of the class.
 
 ```c++
 class Math
@@ -100,10 +100,10 @@ int main()
 ### 3. Corner Case: static Global Variables and Functions
 This is an older, C-style usage. When static is used on a function or a variable at global or namespace scope, it gives that symbol internal linkage.
 
-Internal Linkage: This means the variable or function is only visible within the single .cpp file (translation unit) where it's defined. 
+**Internal Linkage:** This means the variable or function is only visible within the single .cpp file (translation unit) where it's defined. 
 Another .cpp file can have its own static variable with the same name without causing a linker error.
 
-Modern C++ Practice: The preferred way to achieve this file-local privacy is by using an anonymous (unnamed) namespace.
+**Modern C++ Practice:** The preferred way to achieve this file-local privacy is by using an anonymous (unnamed) namespace.
 
 
 ```c++

@@ -31,3 +31,5 @@ In the following, let us look at RAII from the perspective of memory management.
 - A resource is allocated in the constructor of the RAII class
 - The resource is deallocated in the destructor
 - All instances of the RAII class are allocated on the stack to reliably control the lifetime via the object scope
+
+---
