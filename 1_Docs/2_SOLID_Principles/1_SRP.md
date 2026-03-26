@@ -1,10 +1,9 @@
-## Single Responsibility Principle (SRP)
-
+# Single Responsibility Principle (SRP)
 
 **Example 1: Violating the SRP**
 This class handles both storing data and printing it, violating SRP.
 
-```
+```cpp
 #include <iostream>
 #include <string>
 
@@ -34,17 +33,16 @@ int main() {
 ```
 
 **Violation:**
-The User class has two responsibilities: 
-- database operations. 
+The User class has two responsibilities:
+- database operations.
 - printing the user data.
 
 If printing logic or database handling changes, we must modify this class.
 
-
 **Example 2: Adhering to SRP**
 In this version, we separate data storage from printing.
 
-```
+```c++
 #include <iostream>
 #include <string>
 
@@ -87,10 +85,13 @@ int main() {
 ```
 
 **Adherence:**
+
 - UserDatabase handles database operations.
 - UserPrinter handles printing.
 - User only holds the data.
 
 Now, if printing or database logic changes, we only update the relevant class.
+
+In this example we made the class User adehere to SRP by introducing a 2 new seprate classes that performs these extra functionality (UserPrinter and UserPrinter) and made these classes composed of User class through dependency injection which is a good design.
 
 ---

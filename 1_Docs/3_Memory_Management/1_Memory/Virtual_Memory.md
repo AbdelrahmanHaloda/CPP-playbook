@@ -1,21 +1,25 @@
-### Problems with physical memory
+# Problems with physical memory
+
 Virtual memory is a very useful concept in computer architecture because it helps with making your software work well given the configuration of the respective hardware on the computer it is running on.
 
 The idea of virtual memory stems back from a (not so long ago) time, when the random access memory (RAM) of most computers was severely limited. Programers needed to treat memory as a precious resource and use it most efficiently. Also, they wanted to be able to run programs even if there was not enough RAM available. At the time of writing (August 2019), the amount of RAM is no longer a large concern for most computers and programs usually have enough memory available to them. But in some cases, for example when trying to do video editing or when running multiple large programs at the same time, the RAM memory can be exhausted. In such a case, the computer can slow down drastically.
 
 There are several other memory-related problems, that programmers need to know about:
 
-1- Holes in address space : 
+1- Holes in address space:
+
 - If several programs are started one after the other and then shortly afterwards some of these are terminated again, it must be ensured that the freed-up space in between the remaining programs does not remain unused. If memory becomes too fragmented, it might not be possible to allocate a large block of memory due to a large-enough free contiguous block not being available any more.
 
-2- Programs writing over each other : 
-- If several programs are allowed to access the same memory address, they will overwrite each others' data at this location. In some cases, this might even lead to one program reading sensitive information (e.g. bank account info) that was written by another program. This problem is of particular concern when writing concurrent programs which run several threads at the same time.
+2- Programs writing over each other:
+
+- If several programs are allowed to access the same memory address, they will overwrite each others, data at this location. In some cases, this might even lead to one program reading sensitive information (e.g. bank account info) that was written by another program. This problem is of particular concern when writing concurrent programs which run several threads at the same time.
 
 The basic idea of virtual memory is to separate the addresses a program may use from the addresses in physical computer memory. By using a mapping function, an access to (virtual) program memory can be redirected to a real address which is guaranteed to be protected from other programs.
 
 In the following, you will see, how virtual memory solves the problems mentioned above and you will also learn about the concepts of memory pages, frames and mapping. A sound knowledge on virtual memory will help you understand the C++ memory model, which will be introduced in the next lesson of this course.
 
-#### Quiz
+## Quiz
+
 On a 32-bit machine, each program has its own 32-bit address space. When a program wants to access a memory location, it must specify a 32-bit address, which directs it to the byte stored at this location. On a hardware level, this address is transported to the physical memory via a parallel bus with 32 cables, i.e. each cable can either have the information 'high voltage', and 'low voltage' (or '1' and '0').
 
 
@@ -27,7 +31,8 @@ Answer: -> 4GB
 
 ---
 
-### Expanding the available memory
+## Expanding the available memory
+
 As you have just learned in the quiz, the total amount of addressable memory is limited and depends on the architecture of the system (e.g. 32-bit). But what would happen if the available physical memory was below the upper bound imposed by the architecture? The following figure illustrates the problem for such a case:
 
 ![pic](/Users/abdelrahmanhaloda/Desktop/AHossam/Repos/NanoDegreeCPP/1_Docs/Memory_Management/pictures/physicalMemory.png)
@@ -55,7 +60,7 @@ Before we take a closer look at an example though, let us define two important t
 - A **memory frame** is mostly identical to the concept of a memory page with the key difference being its location in the physical main memory instead of the virtual memory.
   
 The following diagram shows two running processes and a collection of memory pages and frames:
-![pic](/Users/abdelrahmanhaloda/Desktop/AHossam/Repos/NanoDegreeCPP/1_Docs/Memory_Management/pictures/pageFrame.png)
+![pic](/Users/abdelrahmanhaloda/Desktop/AHossam/Repos/NanoDegreeCPP/1_Docs/3_Memory_Management/Images/pageFrame.png)
 
 As can be seen, both processes have their own virtual memory space. Some of the pages are mapped to frames in the physical memory and some are not. If process 1 needs to use memory in the memory page that starts at address 0x1000, a page fault will occur if the required data is not there. The memory page will then be mapped to a vacant memory frame in physical memory. Also, note that the virtual memory addresses are not the same as the physical addresses. The first memory page of process 1, which starts at the virtual address 0x0000, is mapped to a memory frame that starts at the physical address 0x2000.
 

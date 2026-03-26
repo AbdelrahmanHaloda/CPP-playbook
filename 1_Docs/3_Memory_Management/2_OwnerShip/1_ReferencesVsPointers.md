@@ -1,20 +1,22 @@
-### References vs Pointers
-Pointers and references can have similar use cases in C++. Both references and pointers can be used in pass-by-reference to a function. Additionally, they both provide an alternative way to access an existing variable: 
+# References vs Pointers
+
+Pointers and references can have similar use cases in C++. Both references and pointers can be used in pass-by-reference to a function. Additionally, they both provide an alternative way to access an existing variable:
+
 - **pointers** through the variable's address.
-- **references** through another name for that variable (alias) and it is **evaluated at compile time**. 
+- **references** through another name for that variable (alias) and it is **evaluated at compile time**.
 
 But what are the differences between the two, and when should each be used? The following list summarizes some of the differences between pointers and references, as well as when each should be used:
 
+## References
 
-**References**	
-- References must be initialized when they are declared. This means that a reference will always point to data that was intentionally assigned to it.	
-- References can not be null. This means that a reference should point to meaningful data in the program.	
-- When used in a function for pass-by-reference, the reference can be used just as a variable of the same type would be.	
+- References must be initialized when they are declared. This means that a reference will always point to data that was intentionally assigned to it.
+- References can not be null. This means that a reference should point to meaningful data in the program.
+- When used in a function for pass-by-reference, the reference can be used just as a variable of the same type would be.
 - When you declare a reference member variable in a class, you must initialize it in the constructor initialization list. This is because references in C++ must be bound to an object when they are created, and once they are bound, they cannot be rebound to refer to a different object.
 - References are usually easier to use (depending on the expertise level of the programmer). Sometimes however, if a third-party function is used without properly looking at the parameter definition, it might go unnoticed that a value has been modified.
 
+## Pointers
 
-**Pointers**
 - Pointers can be declared without initialization. **This could mean two things:**
   
   **1-** It can be dangerous as if this happens mistakenly, the pointer could be pointing to an arbitrary address in memory, and the data associated with that address could be meaningless, leading to undefined behavior and difficult-to-resolve bugs.
@@ -26,8 +28,71 @@ But what are the differences between the two, and when should each be used? The 
 
 - When used in a function for pass-by-reference, a pointer must be dereferenced in order to access the underlying object.
 
+### So why Reference ? why not use const ptrs ?
 
-**NOTE:-** 
+- References can provide friendlier function interfaces.
+- More specifically, C++ has references so that overloaded operators can look just like built-in operaotos..
+
+## Reference and Overloaded Operators
+
+Consider the following example to show how important are references:
+
+```c++
+enum month {
+    Jan,
+    Feb,
+    Mar,
+    ...
+};
+
+typedef enum month month;
+
+for (month m = Jan; m<= Dec; m++)
+{
+    //code
+}
+```
+
+- The code compiles and executed as expected in C but doesn't compile in c++
+- In C++ , the built-in ++ won't accept an operand of enumration type.
+- You need to overload ++ for month.
+- Lets try it without references.
+
+```c++
+void operator++(month x) // pass by value
+{
+    x = static_cast<month>(x+1);
+}
+```
+
+- Using this definition, m++ compiles, but doesn't increment the original m.
+- It increments a copy of m in parameter x.
+- Lets try pass by pointer.
+
+```c++
+void operator++(month *x) // pass by pointer
+{
+    *x = static_cast<month>(*x+1);
+}
+```
+
+- This function definition won't compile.
+- You can't overload an operator with parameter of pointer type.
+- So here, we want something that behaves like a pointer but doesn't force us to take the address of the thing when we are passing it in.
+- Lets try reference
+
+```c++
+void operator++(month &x) // pass by reference
+{
+    x = static_cast<month>(x+1);
+}
+```
+
+- Compiles, increment m and looks right.
+- As bonus, this ++ operator won't accept rvalue.
+- Because references won't bind to rvalues as rvalues don't have well defined location in memory.
+
+**NOTE:-**
 References are generally easier and safer than pointers. As a decent rule of thumb, references should be used in place of pointers when possible.
 
 However, there are times when it is not possible to use references. One example is object initialization. You might like one object to store a reference to another object. However, if the other object is not yet available when the first object is created, then the first object will need to use a pointer, not a reference, since a reference cannot be null. The reference could only be initialized once the other object is created.
@@ -58,12 +123,33 @@ public:
 
 ---
 
+## Reference to const parameters
 
-### Three types of passing a value to a function parameter
+- A "reference to const" will accept an argument that's either const or non-const.
+`R f(T const &t);`
+- In contrast, a reference (to non-const) parameter will accept only a non-const argument.  
+- When it appears in an expression, a "reference to const"  yeilds a **non-modifiable lvalue**
+
+So, using:
+
+```c++
+R f(T const &t); // (1) pass by reference to const
+R f(T t);        // (2) pass by value
+
+f(x);            // you write the argument expression the same way
+```
+
+- (1) f has access only to a copy of x, not x itself.
+- (2) f's paramater is declared to be non-modifiable.
+- They act very much the same.
+- Passing by reference to const might be more efficent than passing by value.
+- It depends on the cost of making a copy.
+
+## Three types of passing a value to a function parameter
 
 **1- Passing Variables by Value**
 When passing parameters in such a way a local copies of the information provided by the caller are created in the function scope.
-It is ensured that changes made to the local copy will not affect the original on the caller side. 
+It is ensured that changes made to the local copy will not affect the original on the caller side.
 The upside to this is that inner workings of the function and the data owned by the caller are kept neatly separate.
 
 However, there are two major downsides to this:
@@ -72,14 +158,15 @@ However, there are two major downsides to this:
 - Passing by value also means that the created copy can not be used as a back channel for communicating with the caller, for example by directly writing the desired information into the variable.
 
 **2- Passing Variables by Reference using a pointer**
-Passing parameters by reference using a pointer, we are also creating a local copy as well but note that we are now passing a pointer variable. This means that a copy of the memory address of the variable is created, which we can then use to directly modify its content by using the dereference operator *. 
+Passing parameters by reference using a pointer, we are also creating a local copy as well but note that we are now passing a pointer variable. This means that a copy of the memory address of the variable is created, which we can then use to directly modify its content by using the dereference operator *.
 
 **NOTE** here that using this method is a combination of both
 
-    1- passing by value: which is the pointer variable, this creates a copy of the pointer variable in the stack (4 bytes - 32bitsystem or 8 bytes for 64 bit system)
+```text
+1- passing by value: which is the pointer variable, this creates a copy of the pointer variable in the stack (4 bytes - 32bitsystem or 8 bytes for 64 bit system)
 
-    2- passing by reference: which is the address of the variable that the pointer points to.
-
+2- passing by reference: which is the address of the variable that the pointer points to.
+```
 
 **3- Passing Variables by Reference**
 Passing parameters by reference will allow the function to modify the argument such that the changes also happen on the caller side. In addition to the possibility to directly exchange information between function and caller, passing variables by reference is also faster as no information needs to be copied, as well as more memory-efficient.
@@ -158,7 +245,8 @@ Therefore, in practice, both methods result in similar memory usage.
 
 So, basically under the Hood: Both pointers and references are implemented in a way that uses the address of the variable. This results in the same memory overhead.
 
-**Summary**
+## Summary
+
 - **Pointers:** Create a copy of the pointer (address) in the function scope.
 - **References:** Do not create a new variable, but the compiler treats them similarly to pointers in terms of accessing memory.
 - **Memory Efficiency**: Both result in the same memory usage because both involve accessing the variable via its address, and the compiler optimizes them similarly.
@@ -173,6 +261,4 @@ A reference only refer to one thing and that's it.
 
 ---
 
-
 add excerise for this from Moatesm slides. AbdelrahmanHossam - screenshot already in Desktop
-

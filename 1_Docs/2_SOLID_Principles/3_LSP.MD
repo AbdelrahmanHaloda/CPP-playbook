@@ -1,9 +1,9 @@
-## Liskov Substitution Principle (LSP)
+# Liskov Substitution Principle (LSP)
 
 **Example 1: Violation of LSP**
 In this version, PercentageDiscount and FixedDiscount inherit from the same base class. However, a new NoDiscount subclass violates LSP because it behaves differently—returning a constant value without using the input amount.
 
-```
+```cpp
 #include <iostream>
 
 class Discount {
@@ -45,13 +45,14 @@ int main() {
 ```
 
 **Problem:**
+
 - NoDiscount breaks **LSP** because it doesn’t follow the expected behavior.
 - A consumer of Discount expects all subclasses to calculate discounts based on the input amount, but NoDiscount ignores it.
 
 **Example 2: Adheres to LSP**
 To adhere to LSP, we modify the design so that all discount types maintain consistent behavior. We use a Null Object pattern to handle the case where no discount is applied.
 
-```
+```cpp
 #include <iostream>
 
 class Discount {

@@ -1,7 +1,5 @@
 
-
-
-### Rule of Five
+# Rule of Five
 
 The Rule of Five is a C++ guideline for classes that manage resources like raw pointers, file handles, or network sockets. It states that if you need to write or delete any of the following five special member functions, you should probably deal with all five:
 
@@ -13,10 +11,9 @@ The Rule of Five is a C++ guideline for classes that manage resources like raw p
 
 The reason is simple: if your class needs a custom destructor to release a resource (like calling delete[]), the default compiler-generated copy and move functions will be **incorrect**. They would perform a **shallow copy** of the pointer, leading to two objects pointing to the same memory. This results in double-free errors and undefined behavior.
 
+## summary
 
-#### summary:
 Any change in **destructor** or **copy constructor** or **copy assigment operator** or **move constructor** or **move assigment operator** Must be followed by implementing the other 4.
-
 
 ```c++
 #include <iostream>
@@ -27,14 +24,14 @@ class MyMovableClass
 {
 private:
     int _size;
-    int* _data;
+    int* _pData;
 
 public:
     
     // 1. Constructor
     MyMovableClass(int size) 
         : _size(size),
-          _data(new int[size])
+          _pData(new int[size])
     {
         std::cout << "-> CONSTRUCTOR: Creating instance at " << this << " with " << _size << " elements.\n";
     }
@@ -43,29 +40,33 @@ public:
     ~MyMovableClass()
     {
         std::cout << "-> DESTRUCTOR: Deleting instance at " << this << ".\n";
-        delete[] _data;
+        delete[] _pData;
     }
 
     // 3. Copy Constructor
     MyMovableClass(const MyMovableClass& source) 
         : _size(source._size), 
-          _data(new int[source._size])
+          _pData(new int[source._size])
     {
         std::cout << "-> COPY CONSTRUCTOR: Copying from " << &source << " to " << this << ".\n";
         // copy the data from source
-        std::copy(source._data, source._data + source._size, _data);
+        std::copy(source._pData, source._pData + source._size, _pData);
         /*
             for (int i = 0; i < _size; ++i) 
             {
-                _data[i] = source._data[i];
+                _pData[i] = source._pData[i];
             }
         */
     }
 
     // 4. Copy Assignment Operator (using copy-and-swap idiom)
-    MyMovableClass& operator=(MyMovableClass source) noexcept
+    MyMovableClass& operator=(const MyMovableClass source) noexcept
     {
-        // 1. Check for self-assignment
+        // Check for self-assignment
+        // This check is necessary only for copy-assignment operator because its the case where you copy an object 
+        // to an existing // object (both objects already exist so you might do something like this objectA = objectA)
+        // Unlike copy constructor which is triggered when you instantiate a new object from an existing object so no risk since
+        // this operation requires new memory allocation.
         if (this == &source) {
             return *this;
         }
@@ -83,16 +84,16 @@ public:
     // 5. Move Constructor
     MyMovableClass(MyMovableClass&& source) noexcept
         : _size(0), 
-          _data(nullptr) // Initialize to a valid state
+          _pData(nullptr) // Initialize to a valid state
     {
         std::cout << "-> MOVE CONSTRUCTOR: Moving from " << &source << " to " << this << ".\n";
         // "Steal" the resources from the source object
         _size = source._size;
-        _data = source._data;
+        _pData = source._pData;
 
         // Leave the source object in a valid but empty state
         source._size = 0;
-        source._data = nullptr;
+        source._pData = nullptr;
     }
 
     // 6. Move Assignment Operator
@@ -102,14 +103,14 @@ public:
         if (this != &source) // Prevent self-move-assignment
         {
             // Release our own resource
-            delete[] _data;
+            delete[] _pData;
 
             // "Steal" the resources from the source object
-            _data = source._data;
+            _pData = source._pData;
             _size = source._size;
 
             // Leave the source object in a valid but empty state
-            source._data = nullptr;
+            source._pData = nullptr;
             source._size = 0;
         }
         return *this;
@@ -120,10 +121,18 @@ public:
 
 ---
 
-why copy constructor has this signature
+## why copy constructor has this signature ?
 
-    `MyMovableClass(const MyMovableClass& source)`
+> MyMovableClass(const MyMovableClass& source)
 
-- reference beucase if its not it will be recursive constructor invoking as source will need constructor to get instantitated.
-- const so it can be bind to rvalue as there are cases it is needed to invoke copy constructor not move constructor for rvalue ? check with chatgpt though..
-- const is also used to protect the source data as you should not modify it, the intention is only to copy it so const make sure to protect the source data since u receive it as reference.
+1) It must take the source by reference
+If it took it by value, creating the parameter would itself require calling the copy constructor again, causing infinite recursion.
+
+2) It is const so it can copy from const objects
+A copy operation should work even when the source object is const. A non-const reference (T&) cannot bind to a const object.
+
+3) It is const because copying should not modify the source
+The source is only read to create an independent copy, so the type should express that intent.
+
+4) `const T&` can also bind to rvalues
+This makes the copy constructor broadly usable. In modern C++, rvalues are usually handled by the move constructor (T&&) when available, but if moving is unavailable, the copy constructor can still accept them.

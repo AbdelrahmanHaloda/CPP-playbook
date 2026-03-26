@@ -1,24 +1,29 @@
-### The Shared Pointer
+# The Shared Pointer
+
 Just as the unique pointer, a shared pointer owns the resource it points to. The main difference between the two smart pointers is that shared pointers keep a reference counter on how many of them point to the same memory resource. Each time a shared pointer goes out of scope, the counter is decreased. When it reaches zero (i.e. when the last shared pointer to the resource is about to vanish). the memory is properly deallocated. This smart pointer type is useful for cases where you require access to a memory location on the heap in multiple parts of your program and you want to make sure that whoever owns a shared pointer to the memory can rely on the fact that it will be accessible throughout the lifetime of that pointer.
 
 The following diagram illustrates the basic idea of a shared pointer:
-[Diagram](/Users/abdelrahmanhaloda/Desktop/AHossam/Repos/NanoDegreeCPP/1_Docs/Memory_Management/pictures/SharedPtr.png)
+[Diagram](/Users/abdelrahmanhaloda/AHossam/REPOS/CPP-playbook/1_Docs/3_Memory_Management/Images/SharedPtr.png)
 
 ---
-### shared_ptr mthodes
+
+## shared_ptr mthodes
 
 1- `.get()`
-returns the raw pointer 
+
+returns the raw pointer
+
 `*(shared.get())` is equivalent to `*shared_ptr`
 
 2- `.use_count()`
 returns the number of pointers shared to the same object.
 
 3- `.reset()`
-A method that modifies the std::shared_ptr so that it either points to a new object or is empty. This operation can involve releasing ownership of the currently managed object, potentially destroying it if no other std::shared_ptr instances share ownership.
+A method that modifies the `std::shared_ptr` so that it either points to a new object or is empty. This operation can involve releasing ownership of the currently managed object, potentially destroying it if no other `std::shared_ptr` instances share ownership.
 
 Example: Resetting to an Empty std::shared_ptr
-```
+
+```cpp
 #include <iostream>
 #include <memory>
 
@@ -47,7 +52,8 @@ int main() {
 ```
 
 Example: Resetting to a New Object
-```
+
+```cpp
 #include <iostream>
 #include <memory>
 
@@ -73,3 +79,5 @@ int main() {
     return 0;
 }
 ```
+
+---

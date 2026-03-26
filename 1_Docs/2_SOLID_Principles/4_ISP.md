@@ -1,9 +1,9 @@
-## Interface Segregation Principle (ISP)
+# Interface Segregation Principle (ISP)
 
 **Example 1: Violation of ISP**
 In this version, the Car interface has multiple methods that aren't relevant to all cars. For example, not all cars have an electric engine, so gasoline cars are forced to implement **`chargeBattery()`** even though they don't use it. This violates the **Interface Segregation Principle (ISP)**.
 
-```
+```cpp
 #include <iostream>
 
 class Car {
@@ -32,14 +32,15 @@ public:
 ```
 
 **Problem:**
+
 - Both GasolineCar and ElectricCar are forced to implement methods they don't need, violating ISP.
 - This makes the code less modular and harder to maintain.
 
-
 **Example 2: Adheres to ISP**
+
 We refactor the design by splitting the Car interface into smaller, specific interfaces, ensuring each car class only implements relevant functionality. Now, electric cars and gasoline cars only depend on the methods they need, following ISP.
 
-```
+```cpp
 #include <iostream>
 
 class Engine {
@@ -87,10 +88,11 @@ int main() {
 ```
 
 **Explanation:**
+
 - We split the Car interface into smaller, more focused interfaces: Engine, Refuelable, and Rechargeable.
 - Each class now implements only the interfaces it needs:
-    - GasolineCar implements Engine and Refuelable.
-    - ElectricCar implements Engine and Rechargeable.
+  - GasolineCar implements Engine and Refuelable.
+  - ElectricCar implements Engine and Rechargeable.
 - This design adheres to ISP by ensuring that no class is forced to implement unnecessary methods.
 
 ---

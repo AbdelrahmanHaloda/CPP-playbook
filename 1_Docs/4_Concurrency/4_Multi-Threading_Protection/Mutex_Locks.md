@@ -1,31 +1,32 @@
-### <u>Mutex Types</u>
+# Mutex Types
+
 A short overview of the different available mutex types is given:
 
-- **mutex:** 
+- **mutex:**
 Provides the core functions **`lock()`** and **`unlock()`** and the non-blocking **`try_lock()`** method that returns if the **mutex** is not available.
 
-- **recursive_mutex:** 
+- **recursive_mutex:**
 Allows multiple acquisitions of the **mutex** from the same **thread**.
 
-- **timed_mutex:** 
+- **timed_mutex:**
 Similar to **mutex**, but it comes with two more methods **`try_lock_for()`** and **`try_lock_until()`** that try to acquire the **mutex** for a period of time or until a moment in time is reached.
 
 - **recursive_timed_mutex:** is a combination of **timed_mutex** and **recursive_mutex**.
   
 ---
 
-### <u>Using a Mutex To Protect Shared Data</u>
-**The mutex entity**
+## Using a Mutex To Protect Shared Data
 
+**The mutex entity**
 Until now, the methods we have used to pass data between threads were short-term and involved passing an argument **(the promise)** from a **parent thread** to a **worker thread** and then passing a result back to the **parent thread** **(via the future)** once it has become available. The **promise-future** construct **is a non-permanent communication channel for one-time usage.**
 
 We have seen that in order to avoid **data races**, we need to either forego accessing shared data or use it in **read-only access** without mutating the data. Now, we want to look at a way to establish a stable **long-term communication channel** that allows for both sharing and mutation. Ideally, we would like to have a communication protocol that corresponds to voice communication over a radio channel, where the transmitter uses the expression **"over"** to indicate the end of the transmission to the receiver. By using such a protocol, sender and receiver can take turns in transmitting their data. In C++, this concept of taking turns can be constructed by an entity called a **"mutex"** - which stands for **MUtual EXclusion.**
 
 A **data race** requires simultaneous access from two **threads**. If we can guarantee that only a single **thread** at a time can access a particular memory location, **data races** would not occur. In order for this to work, we would need to establish a communication protocol. It is important to note that a **mutex** is not the solution to the **data race** problem per se but merely an enabler for a **thread-safe communication protocol** that has to be implemented and adhered to by the programmer.
 
-![Mutex](/Users/abdelrahmanhaloda/Desktop/AHossam/REPOS/NanoDegreeCPP/1_Docs/Concurrency/Images/Mutex.png)
+![Mutex](/Users/abdelrahmanhaloda/AHossam/REPOS/CPP-playbook/1_Docs/4_Concurrency/Z_Images/Mutex.png)
 
-Let us take a look at how this protocol works: 
+Let us take a look at how this protocol works:
 Assuming we have a piece of memory **(e.g. a shared variable)** that we want to protect from simultaneous access, we can assign a **mutex** to be the guardian of this particular memory. It is important to understand that a **mutex** is bound to the memory it protects. A **thread 1** who wants to access the protected memory must **"lock"** the **mutex** first. After **thread 1** is **"under the lock"**, a **thread 2** is **blocked** from access to the shared variable, it can not acquire the lock on the **mutex** and is temporarily suspended by the system.
 
 Once the reading or writing operation of **thread 1** is complete, it must **"unlock"** the **mutex** so that **thread 2** can access the memory location. Often, the code which is executed **"under the lock"** is referred to as a **"critical section"**. It is important to note that also read-only access to the shared memory has to lock the **mutex** to prevent a **data race** - which would happen when another **thread**, who might be under the lock at that time, were to modify the data.
@@ -101,14 +102,16 @@ int main()
 **Example 1 o/p:**
 The correct output should be 999.
 This result is due to **data-race**.
-```
+
+```sh
 #vehicles = 436
 ```
-It seems that not all the vehicles could be added to the queue. But why is that? Note that in the **thread** function **"pushBack"** there is a call to sleep_for, which pauses the **thread** execution for a short time. This is the position where the **data race occurs**: First, the current value of _tmpVehicles is stored in a temporary variable oldNum. While the **thread** is paused, there might (and will) be changes to _tmpVehicles performed by other **threads**. When the execution resumes, the former value of _tmpVehicles is written back, thus invalidating the contribution of all the **threads** who had write access in the mean time. Interestingly, when sleep_for is commented out, the output of the program is the same as with **std::launch::deferred** - at least that will be the case for most of the time when we run the program. But once in a while, there might be a scheduling constellation which causes the bug to expose itself. Apart from understanding the **data race**, **you should take as an advice that introducing deliberate time delays in the testing / debugging phase of development can help expose many concurrency bugs.**
+
+It seems that not all the vehicles could be added to the queue. But why is that? Note that in the **thread** function **"pushBack"** there is a call to sleep_for, which pauses the **thread** execution for a short time. This is the position where the **data race occurs**: First, the current value of `_tmpVehicles` is stored in a temporary variable oldNum. While the **thread** is paused, there might (and will) be changes to _tmpVehicles performed by other **threads**. When the execution resumes, the former value of `_tmpVehicles` is written back, thus invalidating the contribution of all the **threads** who had write access in the mean time. Interestingly, when sleep_for is commented out, the output of the program is the same as with **std::launch::deferred** - at least that will be the case for most of the time when we run the program. But once in a while, there might be a scheduling constellation which causes the bug to expose itself. Apart from understanding the **data race**, **you should take as an advice that introducing deliberate time delays in the testing / debugging phase of development can help expose many concurrency bugs.**
 
 ---
 
-### <u>Using mutex to protect data</u>
+## Using mutex to protect data
 
 In its simplest form, using a mutex consists of four straight-forward steps:
 
@@ -119,15 +122,15 @@ In its simplest form, using a mutex consists of four straight-forward steps:
 
 In order to protect the access to _vehicles from being manipulated by several **threads** at once, a **mutex** has been added to the class as a private data member. In the pushBack function, the **mutex** is locked before a new element is added to the vector and unlocked after the operation is complete.
 
-Note that the **mutex** is also locked in the function printSize just before printing the size of the vector. The reason for this lock is two-fold: 
-**First**, we want to prevent a **data race** that would occur when a read-access to the vector and a simultaneous write access (even when under the lock) would occur. 
+Note that the **mutex** is also locked in the function printSize just before printing the size of the vector. The reason for this lock is two-fold:
+**First**, we want to prevent a **data race** that would occur when a read-access to the vector and a simultaneous write access (even when under the lock) would occur.
 
 **Second**, we want to exclusively reserve the standard output to the console for printing the vector size without other threads printing to it at the same time.
 
 **Example 2:**
 The below code uses a **mutex** to protect the shared resource.
 
-```
+```cpp
 #include <iostream>
 #include <thread>
 #include <vector>
@@ -161,7 +164,7 @@ public:
     void pushBack(Vehicle &&v)
     {
         _mutex.lock();
-        _vehicles.emplace_back(std::move(v)); // data race would cause an exception
+        _vehicles.emplace_back(std::move(v));
         _mutex.unlock();
     }
 
@@ -191,15 +194,17 @@ int main()
 ```
 
 **Example 2 o/p:**
-When this code is executed, 1000 elements will be in the vector. 
+When this code is executed, 1000 elements will be in the vector.
 **Data race** has been effectively avoided.
-```
+
+```sh
 #vehicles = 1000
 ```
 
 **Example 3:**
 The code below uses **timed_mutex** for 100 ms for 3 times.
-```
+
+```cpp
 #include <iostream>
 #include <thread>
 #include <vector>
@@ -276,25 +281,26 @@ int main()
 ```
 
 **Example 3 o/p:**
-```
+
+```sh
 #vehicles = 1000
 ```
 
 ---
 
-### <u>Deadlock 1</u>
-Using **mutexes** can significantly reduce the risk of **data races** as seen in 
-the example above. But imagine what would happen if an exception was thrown 
-while executing code in the critical section, i.e. between **lock and unlock**. 
-In such a case, the **mutex** would remain locked indefinitely and no other 
-t**thread** could unlock it - the program would most likely freeze.
+## Deadlock 1
 
+Using **mutexes** can significantly reduce the risk of **data races** as seen in
+the example above. But imagine what would happen if an exception was thrown
+while executing code in the critical section, i.e. between **lock and unlock**.
+In such a case, the **mutex** would remain locked indefinitely and no other
+**thread** could unlock it - the program would most likely freeze.
 
 **Example 4:**
 The below code performs a division of numbers:
 No Portection on the **shared rescource.**
 
-```
+```cpp
 #include <iostream>
 #include <thread>
 #include <vector>
@@ -351,7 +357,8 @@ int main()
 ```
 
 **Example 4 o/p:**
-```
+
+```sh
 Exception from thread: Division by zero!
 for denom = -5, the result is for denom = -4, the result is 16.6667
 16.6667
@@ -364,21 +371,20 @@ for denom = 4, the result is 16.6667
 for denom = 5, the result is 16.6667
 for denom = 3, the result is 16.6667
 ```
+
 As can easily be seen, the console output is totally mixed up and some results appear multiple times. There are several issues with this program.
 
-**First** 
-The **thread** function writes its result to a global variable which is passed to it by reference. 
+**First**
+The **thread** function writes its result to a global variable which is passed to it by reference.
 This will cause a **data race**, The **sleep_for** function exposes the data race clearly.
 
-**Second** 
+**Second**
 The result is printed to the console by several **threads** at the same time, causing the chaotic output.
-
-
 
 **Example 5:**
 The below code is identical to the above but protection was added to resolve the previous issues.
 
-```
+```cpp
 #include <iostream>
 #include <thread>
 #include <vector>
@@ -441,7 +447,8 @@ int main()
 **Example 5 o/p:**
 The system freezed. !
 This problem is one type of **deadlock**, which causes a program to freeze because one **thread** does not release the lock on the **mutex** while all other **threads** are waiting for access indefinitely. 
-```
+
+```sh
 for denom = -5, the result is -10
 for denom = -4, the result is -12.5
 for denom = -3, the result is -16.6667
@@ -452,16 +459,17 @@ Exception from thread: Division by zero!
 
 ---
 
-### <u>Deadlock 2</u>
-A second type of **deadlock** is a state in which two or more **threads** are blocked because 
-each **thread** waits for the resource of the other **thread** to be released before releasing its resource. 
-The result of the **deadlock** is a complete standstill. 
-The **thread** therefore usually the whole program is blocked forever. 
+## Deadlock 2
+
+A second type of **deadlock** is a state in which two or more **threads** are blocked because
+each **thread** waits for the resource of the other **thread** to be released before releasing its resource.
+The result of the **deadlock** is a complete standstill.
+The **thread** therefore usually the whole program is blocked forever.
 
 **Example 6:**
 The following code illustrates the problem:
 
-```
+```cpp
 #include <iostream>
 #include <thread>
 #include <mutex>
@@ -511,25 +519,26 @@ int main()
 The system is also freezed. !
 Notice that it does not print the **"Finished"** statement nor does it return.
 The program is in a **deadlock**, which it can never leave.
-```
+
+```sh
 Thread A
 Thread B
 ```
 
 Let us take a closer look at this problem:
 
-ThreadA and ThreadB both require access to the console. Unfortunately, they request this resource which is protected 
-by two **mutexes** in different order. 
-If the two **threads** work interlocked so that first **ThreadA** locks **mutex 1**, then **ThreadB** locks **mutex 2**, 
-the program is in a deadlock: Each thread tries to lock the other **mutex** and needs to wait for its release, which never comes. 
+ThreadA and ThreadB both require access to the console. Unfortunately, they request this resource which is protected
+by two **mutexes** in different order.
+If the two **threads** work interlocked so that first **ThreadA** locks **mutex 1**, then **ThreadB** locks **mutex 2**,
+the program is in a deadlock: Each thread tries to lock the other **mutex** and needs to wait for its release, which never comes.
 The following figure illustrates the problem graphically.
 
-![deadLock](/Users/abdelrahmanhaloda/Desktop/AHossam/REPOS/NanoDegreeCPP/1_Docs/Concurrency/Images/DeadLock.png)
+![deadLock](/Users/abdelrahmanhaloda/AHossam/REPOS/CPP-playbook/1_Docs/4_Concurrency/Z_Images/DeadLock.png)
 
 **Example 7:**
 The below code resolve the deadlock issue.
 
-```
+```cpp
 #include <iostream>
 #include <thread>
 #include <mutex>
@@ -578,7 +587,8 @@ int main()
 **Example 7 o/p:**
 Problem Resolved.
 Avoiding such a deadlock is possible but requires time and a great deal of experience. 
-```
+
+```sh
 Thread B
 Thread A
 Finished
@@ -586,24 +596,24 @@ Finished
 
 ---
 
-### <u>Using Locks to Avoid Deadlocks</u>
+## Using Locks to Avoid Deadlocks
 
 **Lock Guard**
+In the previous example, we have directly called the **`lock()`** and **`unlock()`** functions of a **mutex**. The idea of "working under the lock" is to block unwanted access by other **threads** to the same resource. Only the **thread** which acquired the lock can unlock the **mutex** and give all remaining **threads** the chance to acquire the lock.
 
-In the previous example, we have directly called the **`lock()`** and **`unlock()`** functions of a **mutex**. The idea of "working under the lock" is to block unwanted access by other **threads** to the same resource. Only the **thread** which acquired the lock can unlock the **mutex** and give all remaining **threads** the chance to acquire the lock. 
-In practice however, direct calls to **lock()** should be avoided at all cost! Imagine that while working under the lock, a **thread** would throw an **exception** and exit the critical section without calling the unlock function on the **mutex**. 
+In practice however, direct calls to **lock()** should be avoided at all cost! Imagine that while working under the lock, a **thread** would throw an **exception** and exit the critical section without calling the unlock function on the **mutex**.
 
-In such a situation, the program would most likely **freeze** as no other **thread** could acquire the **mutex** any more. 
+In such a situation, the program would most likely **freeze** as no other **thread** could acquire the **mutex** any more.
 This is exactly what we have seen in the function divideByNumber from the previous example.
 
-We can avoid this problem by creating a **`std::lock_guard`** object, which keeps an associated **mutex** locked during the entire object life time. The lock is acquired on construction and released automatically on destruction. 
+We can avoid this problem by creating a **`std::lock_guard`** object, which keeps an associated **mutex** locked during the entire object life time. The lock is acquired on construction and released automatically on destruction.
 
-This makes it impossible to forget unlocking a critical section. Also, **`std::lock_guard`** guarantees **exception safety** because any critical section is automatically unlocked when an **exception is thrown**. 
+This makes it impossible to forget unlocking a critical section. Also, **`std::lock_guard`** guarantees **exception safety** because any critical section is automatically unlocked when an **exception is thrown**.
 
 **Example 8:**
 The below code uses  **`std::lock_guard`**
 
-```
+```cpp
 #include <iostream>
 #include <thread>
 #include <vector>
@@ -664,7 +674,8 @@ int main()
 
 **Example 8 o/p:**
 Note that there is no direct call to lock or unlock the mutex anymore. We now have a **`std::lock_guard`** object that takes the **mutex** as an argument and locks it at creation. When the method divideByNumber exits, the **mutex** is automatically unlocked by the **`std::lock_guard`** object as soon as it is destroyed - which happens, when the local variable gets out of scope.
-```
+
+```sh
 Exception from thread: Division by zero!
 for denom = -5, the result is -10
 for denom = -4, the result is -12.5
@@ -680,7 +691,8 @@ for denom = 5, the result is 10
 
 ---
 
-### <u>Unique Lock</u>
+## Unique Lock
+
 The problem with the previous example is that we can only lock the **mutex** once and the only way to control lock and unlock is by invalidating the scope of the **`std::lock_guard`** object. But what if we wanted (or needed) a finer control of the locking mechanism?
 
 A more flexible alternative to **`std::lock_guard`** is **unique_lock**, that also provides support for more advanced mechanisms, such as **deferred locking**, **time locking**, **recursive locking**, **transfer of lock ownership** and use of **condition variables** which behaves similar to **lock_guard** but provides much more flexibility, especially with regard to the timing behavior of the locking mechanism.
@@ -688,7 +700,7 @@ A more flexible alternative to **`std::lock_guard`** is **unique_lock**, that al
 **Example 9:**
 The below code uses an adapted version of the code from the previous Exmaple:
 
-```
+```cpp
 #include <iostream>
 #include <thread>
 #include <vector>
@@ -756,14 +768,15 @@ int main()
 ```
 
 **Example 9 o/p:**
-In this version of the code, **`std::lock_guard`** has been replaced with **`std::unique_lock`**. 
-As before, the lock object lck will unlock the mutex in its destructor, i.e. when the function divideByNumber returns and lck gets out of scope. 
+In this version of the code, **`std::lock_guard`** has been replaced with **`std::unique_lock`**.
+As before, the lock object lck will unlock the mutex in its destructor, i.e. when the function divideByNumber returns and lck gets out of scope.
 
-In addition to this automatic unlocking, **`std::unique_lock`** offers the additional flexibility to engage and disengage the lock as needed by manually calling the methods **`lock()`** and **`unlock()`**. 
-This ability can greatly improve the performance of a concurrent program, especially when many **threads** are waiting for access to a locked resource. 
+In addition to this automatic unlocking, **`std::unique_lock`** offers the additional flexibility to engage and disengage the lock as needed by manually calling the methods **`lock()`** and **`unlock()`**.
+This ability can greatly improve the performance of a concurrent program, especially when many **threads** are waiting for access to a locked resource.
 
 In the example, the lock is released before some non-critical work is performed (simulated by sleep_for) and re-engaged before some other work is performed in the critical section and thus under the lock again at the end of the function. This is particularly useful for optimizing performance and responsiveness when a significant amount of time passes between two accesses to a critical resource.
-```
+
+```sh
 Exception from thread: Division by zero!
 for denom = -5, the result is -10
 for denom = -4, the result is -12.5
@@ -776,9 +789,10 @@ for denom = 3, the result is 16.6667
 for denom = 4, the result is 12.5
 for denom = 5, the result is 10
 ```
+
 ---
 
-**The main advantages of `using std::unique_lock<>` over `std::lock_guard` are briefly summarized in the following.** 
+**The main advantages of `using std::unique_lock<>` over `std::lock_guard` are briefly summarized in the following.**
 
 **Using std::unique_lock allows you to:**
 
@@ -790,23 +804,24 @@ for denom = 5, the result is 10
   
 - Construct an instance that tries to acquire a lock for either a specified time period or until a specified point in time.
 
-
 Despite the advantages of **`std::unique_lock<>`** and **`std::lock_guard`** over accessing the **mutex** directly, however, the **deadlock** situation where two **mutexes** are accessed simultaneously will still occur.
 
 ---
 
-### <u>Avoiding deadlocks with `std::lock()`</u>
+## Avoiding deadlocks with `std::lock()`
+
 In most cases, your code should only hold one lock on a **mutex** at a time. Occasionally you can nest your locks, for example by calling a subsystem that protects its internal data with a **mutex** while holding a lock on another **mutex**, but it is generally better to avoid locks on multiple **mutexes** at the same time, if possible. Sometimes, however, it is necessary to hold a lock on more than one **mutex** because you need to perform an operation on two different data elements, each protected by its own **mutex**.
 
-We have seen that using several **mutexes** at once can lead to a **deadlock**, if the order of locking them is not carefully managed. 
+We have seen that using several **mutexes** at once can lead to a **deadlock**, if the order of locking them is not carefully managed.
 
-To avoid this problem, the system must be told that both **mutexes** should be locked at the same time, so that one of the **threads** takes over both locks and blocking is avoided. 
+To avoid this problem, the system must be told that both **mutexes** should be locked at the same time, so that one of the **threads** takes over both locks and blocking is avoided.
+
 That's what the **std::lock()** function is for - you provide a set of **lock_guard** or **unique_lock** objects and the system ensures that they are all locked when the function returns.
 
 **Example 10:**
 In the following example, which is a version of the code we saw in the last section were **`std::mutex`** has been replaced with **`std::lock_guard`**.
 
-```
+```cpp
 #include <iostream>
 #include <thread>
 #include <mutex>
@@ -852,22 +867,21 @@ int main()
 
 **Example 10 o/p:**
 **Note** that when executing this code, it still produces a deadlock, despite the use of std::lock_guard.
-```
+
+```sh
 Thread A
 Thread B
 
 ```
 
 **Example 11:**
-In the following deadlock-free code, **`std::lock`** is used to ensure that the **mutexes** are always locked in the same order, regardless of the order of the arguments. 
+In the following deadlock-free code, **`std::lock`** is used to ensure that the **mutexes** are always locked in the same order, regardless of the order of the arguments.
+
 **Note** that **`std::adopt_lock`** option allows us to use **`std::lock_guard`** on an already locked **mutex**.
 
-```
-
-```
-
 **Example 11 o/p:**
-```
+
+```sh
 Thread A
 Thread B
 Finished

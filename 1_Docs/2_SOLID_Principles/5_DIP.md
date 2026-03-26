@@ -1,9 +1,9 @@
-## Dependency Inversion Principle (DIP)
+# Dependency Inversion Principle (DIP)
 
 **Example 1: Violation of DIP**
 In this example, a Keyboard class is directly used by a Computer class. This violates the **Dependency Inversion Principle (DIP)** because the high-level Computer class depends on a specific low-level module (Keyboard). If we need to use a different input device, such as a Mouse, we must modify the Computer class, making it harder to maintain and extend.
 
-```
+```cpp
 #include <iostream>
 
 class Keyboard {
@@ -30,11 +30,10 @@ private:
 The Computer class is tightly coupled with the Keyboard class.
 If we introduce another input device (like a Mouse), we must modify the Computer class.
 
-
 **Example 2: Adheres to DIP**
 We refactor the design by introducing an abstraction. Now, the Computer class depends on the InputDevice interface, which the Keyboard and Mouse classes implement. This makes the code flexible and extensible.
 
-```
+```cpp
 #include <iostream>
 
 // Abstraction
@@ -88,6 +87,7 @@ int main() {
 ```
 
 **Explanation:**
+
 - We introduced an abstraction (InputDevice) that defines a common interface for all input devices.
 - Both Keyboard and Mouse implement the InputDevice interface.
 - The Computer class now depends on the abstraction (InputDevice) rather than the concrete implementations (Keyboard or Mouse).

@@ -1,4 +1,5 @@
-### RAII (Resource Acquisition is Initialization)
+# RAII (Resource Acquisition is Initialization)
+
 The **RAII** is a widespread programming paradigm, that can be used to protect a resource such as a file stream, a network connection or a block of memory which need proper management.
 
 **Acquiring and releasing resources**
@@ -11,11 +12,12 @@ In most programs of reasonable size, there will be many situations where a certa
 - Protecting synchronization primitives such as atomic operations, memory barriers, monitors or critical sections, which must be released to allow other threads to obtain them.
 
 The following table gives a brief overview of some resources and their respective allocation and deallocation calls in C++:
-[Resource able](/Users/abdelrahmanhaloda/Desktop/AHossam/Repos/NanoDegreeCPP/1_Docs/Memory_Management/pictures/RAII.png)
+[Resource able](/Users/abdelrahmanhaloda/AHossam/REPOS/CPP-playbook/1_Docs/3_Memory_Management/Images/RAII.png)
 
 ---
 
-### RAII to the rescue
+## RAII to the rescue
+
 The major idea of RAII revolves around object ownership and information hiding: Allocation and deallocation are hidden within the management class, so a programmer using the class does not have to worry about memory management responsibilities. If he has not directly allocated a resource, he will not need to directly deallocate it - whoever owns a resource deals with it. In the case of RAII this is the management class around the protected resource. The overall goal is to have allocation and deallocation (e.g. with new and delete) disappear from the surface level of the code you write.
 
 RAII can be used to leverage - among others - the following advantages:

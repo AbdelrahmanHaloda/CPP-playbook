@@ -1,7 +1,8 @@
-### The Process Memory Model
+# The Process Memory Model
+
 Each program is assigned its own virtual memory by the operating system. This address space is arranged in a linear fashion with one block of data being stored at each address. It is also divided into several distinct areas as illustrated by the figure below:
 
-![pic](1_Docs/Memory_Management/pictures/MemoryModel.png)
+![pic](1_Docs/3_Memory_Management/Images/MemoryModel.png)
 
 The last address 0cFFFFFFFF converts to the decimal 4.294.967.295 , which is the total amount of memory blocks that can theoretically addressed in a 32 bit operating system - hence the well-known limit of 4GB of memory. On a 64 bit system, the available space is significantly (!) larger. Also, the addresses are stored with 8 bytes instead of 4 bytes.
 

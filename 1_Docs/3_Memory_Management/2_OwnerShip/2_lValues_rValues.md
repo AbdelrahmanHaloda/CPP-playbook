@@ -1,4 +1,5 @@
-### What are lvalues and rvalues?
+# What are lvalues and rvalues?
+
 A good grasp of lvalues and rvalues in C++ is essential for understanding the more advanced concepts of rvalue references and motion semantics.
 
 Every expression in C++ has a type and belongs to a value category. When objects are created, copied or moved during the evaluation of an expression, the compiler uses these value expressions to decide which method to call or which operator to use.
@@ -24,13 +25,13 @@ In the example above, the value 42 is an rvalue. It does not have a specific mem
 Using the address operator & we can generate an lvalue from an rvalue and assign it to another lvalue:
 `int *j = &i;`
 
-
 [How to crack the confusing world of lvalues and rvalues in C++? It is easy!](https://medium.com/@dhaneshvb/how-to-crack-the-confusing-world-of-lvalues-and-rvalues-in-c-it-is-easy-61c32ced51ce)
 
 [Lvalues and Rvalues (C++)](https://learn.microsoft.com/en-us/cpp/cpp/lvalues-and-rvalues-visual-cpp?view=msvc-160)
 
 ---
-### What is lvalue reference ?
+
+## What is lvalue reference ?
 
 - lValue reference is as it sounds exactly, `int& x`;
 
@@ -48,7 +49,9 @@ int main()
     func(42);   // Error, Can't bind lvalue reference to a rvalue
 }
 ```
+
 **Example 2**
+
 ```c++
 void func(const int& x)
 {}
@@ -191,6 +194,7 @@ int main() {
 ```
 
 **output:**
+
 ```shell
 ## Scenario 1: Automatic Move ##
 --- Starting createObject() ---
@@ -209,7 +213,8 @@ Destructor: Nothing to free (was moved from).
 Destructor: Freed memory.
 ```
 
-#### Key Takeaways from the Example
+### Key Takeaways from the Example
+
 **Automatic Move:**
  In Scenario 1, the compiler is smart enough to see that the object being returned from createObject is a temporary. It automatically chooses the move constructor over the copy constructor, avoiding the expensive allocation and deep copy.
 
@@ -232,8 +237,7 @@ This can't be done using lvalue reference since lvalue references can't bind to 
 
 ---
 
-
-### Binding rules for lvalues and rvalues in C++.
+## Binding rules for lvalues and rvalues in C++.
 
 **Think of it like this:**
 
@@ -241,7 +245,8 @@ This can't be done using lvalue reference since lvalue references can't bind to 
 
 - An **rvalue** is something temporary, like a number in a calculation or a flyer handed to you. 📄
 
-#### Lvalue Reference (T&)
+### Lvalue Reference (T&)
+
 An lvalue reference is a standard reference that acts as an alias for an existing object.
 
 **Can bind to:** lvalues only.
@@ -259,7 +264,8 @@ int& ref_to_lvalue = x; // OK: lvalue reference binds to lvalue
 // int& ref_to_rvalue = 10; // ERROR: Cannot bind lvalue reference to rvalue
 ```
 
-#### Rvalue Reference (T&&)
+### Rvalue Reference (T&&)
+
 An rvalue reference is specifically designed to bind to temporary objects. It's the key mechanism that enables move semantics.
 
 **Can bind to:** rvalues only.
@@ -277,7 +283,8 @@ int&& moved_ref = std::move(x); // OK: std::move casts x to an rvalue
 // int&& ref_to_lvalue = x; // ERROR: Cannot bind rvalue reference to lvalue
 ```
 
-#### Const Lvalue Reference (const T&)
+### Const Lvalue Reference (const T&)
+
 This is the most flexible type of reference. Because it's const, it promises not to change the object it refers to, making it safe to bind to anything.
 
 **Can bind to:** both lvalues and rvalues.
@@ -292,16 +299,18 @@ const int& ref_to_lvalue = x;   // OK: const lvalue reference binds to lvalue
 const int& ref_to_rvalue = 10;  // OK: const lvalue reference binds to rvalue
 ```
 
-#### Summary Table
+---
+
+## Summary Table
+
 Here's a table summarizing which reference type can bind to which value category.
 
-
-| Reference Type | Lvalue (`int x`) | Rvalue (`10`) |
-| :--- | :---: | :---: |
-| **Lvalue Reference (`int&`)** | ✅ Yes | ❌ No |
-| **Rvalue Reference (`int&&`)**| ❌ No | ✅ Yes |
-| **Const Lvalue Reference (`const int&`)**| ✅ Yes | ✅ Yes |
-| **Const Rvalue Reference** (`const int&&`) | ❌ No | ✅ Yes |
+|               Reference Type.              | Lvalue (`int x`) | Rvalue (`10`) |
+| :----------------------------------------: | :--------------: | :-----------: |
+| **Lvalue Reference (`int&`)**              | ✅ Yes           | ❌ No          |
+| **Rvalue Reference (`int&&`)**             | ❌ No            | ✅ Yes         |
+| **Const Lvalue Reference (`const int&`)**  | ✅ Yes           | ✅ Yes         |
+| **Const Rvalue Reference** (`const int&&`) | ❌ No            | ✅ Yes         |
 
 **Note:**
 A const rvalue reference (const T&&) is a reference that binds only to rvalues but prevents you from modifying them.

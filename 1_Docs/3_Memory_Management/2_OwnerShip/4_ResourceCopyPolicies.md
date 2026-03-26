@@ -1,4 +1,5 @@
-### Object Copy
+# Object Copy
+
 There are two primary ways to copy an object in C++:
 
 **Copy Constructor:**
@@ -10,7 +11,6 @@ Used when an existing object is assigned the value of another existing object.
 Invoked when an assignment is made after both objects have already been constructed.
 
 **Summary**
-
 **Copy Constructor:** Creates a new object as a copy of an existing object. It is invoked when:
 
 - A new object is declared and initialized from an existing object.
@@ -23,15 +23,15 @@ Invoked when an assignment is made after both objects have already been construc
 
 ---
 
-### Default copying
+## Default copying
+
 Resource management is one of the primary responsibilities of a C++ programmer. Among resources such as multi-threaded locks, files, network and database connections this also includes memory. The common denominator in all of these examples is that access to the resource is often managed through a handle such as a pointer. Also, after the resource has been used and is no longer, it must be released again so that it available for re-use by someone else.
 
 In C++, a common way of safely accessing resources is by wrapping a manager class around the handle, which is initialized when the resource is acquired (in the class constructor) and released when it is deleted (in the class destructor). This concept is often referred to as **Resource Acquisition is Initialization (RAII)**, which we will discuss in greater depth in the next concept. One problem with this approach though is that copying the manager object will also copy the handle of the resource. This allows two objects access to the same resource - and this can mean trouble.
 
 ---
 
-
-### Consider the example on the right of managing access to a block of heap memory.
+## Consider the following example managing access to a block of heap memory
 
 ```c++
 #include <iostream>
@@ -69,6 +69,7 @@ int main()
     return 0;
 }
 ```
+
 The class MyClass has a private member, which is a pointer to a heap-allocated integer. Allocation is performed in the constructor, deallocation is done in the destructor. This means that the memory block of size sizeof(int) is allocated when the objects myClass1 and myClass2 are created on the stack and deallocated when their scope is left, which happens at the end of the main. The difference between myClass1 and myClass2 is that the latter is instantiated using the **copy constructor**, which duplicates the members in myClass1 - including the pointer to the heap memory where _myInt resides.
 
 The output of the program looks like the following:
@@ -90,10 +91,9 @@ Fortunately, in C++, the copying process can be controlled by defining a tailore
 
 ---
 
-### Copying Policies
+## Copying Policies
 
 **1- No copying policy**
-
 The simplest policy of all is to forbid copying and assigning class instances all together. This can be achieved by declaring, but not defining a private copy constructor and assignment operator (see NoCopyClass1 below) or alternatively by making both public and assigning the delete operator (see NoCopyClass2 below). The second choice is more explicit and makes it clearer to the programmer that copying has been actively forbidden.
 
 ```c++
@@ -129,10 +129,9 @@ int main()
 }
 ```
 
-
 On compiling, we get the following error messages:
 
-```
+```shell
 error: calling a private constructor of class 'NoCopyClass1'
     NoCopyClass1 copy1(original1);
     NoCopyClass1 copy1b = original1; 
@@ -141,6 +140,7 @@ error: call to deleted constructor of 'NoCopyClass2'
     NoCopyClass2 copy2(original2);
     NoCopyClass2 copy2b = original2; 
 ```
+
 Both cases effectively prevent the original object from being copied or assigned. In the C++11 standard library, there are some classes for multi-threaded synchronization which use the no copying policy.
 
 ---
@@ -173,12 +173,12 @@ public:
         }
             
     }
-    ExclusiveCopy(ExclusiveCopy &source)
+    ExclusiveCopy(const ExclusiveCopy &source)
     {
         _myInt = source._myInt;  // transfering ownership (passing handle to the copied object)
         source._myInt = nullptr;  // invalidating the resource from the source object
     }
-    ExclusiveCopy &operator=(ExclusiveCopy &source)
+    ExclusiveCopy &operator=(const ExclusiveCopy &source)
     {
         _myInt = source._myInt;  // transfering ownership (passing handle to the copied object)
         source._myInt = nullptr;  // invalidating the resource from the source object
@@ -194,6 +194,7 @@ int main()
     return 0;
 }
 ```
+
 As can be seen, only a single resource is allocated and freed. So by passing handles and invalidating them, we can implement a basic version of an exclusive ownership policy. However, this example is not the way exclusive ownership is handled in the standard template library. One problem in this implementation is that for a short time there are effectively two valid handles to the same resource - after the handle has been copied and before it is set to nullptr. **In concurrent programs**, this would cause a data race for the resource. A much better alternative to handle exclusive ownership in C++ would be to use **move semantics**.
 
 ---
@@ -221,13 +222,13 @@ public:
         free(_myInt);
         std::cout << "resource freed at address " << _myInt << std::endl;
     }
-    DeepCopy(DeepCopy &source)
+    DeepCopy(const DeepCopy &source)
     {
         _myInt = (int *)malloc(sizeof(int));
         *_myInt = *source._myInt;
         std::cout << "resource allocated at address " << _myInt << " with _myInt = " << *_myInt << std::endl;
     }
-    DeepCopy &operator=(DeepCopy &source)
+    DeepCopy &operator=(const DeepCopy &source)
     {
         _myInt = (int *)malloc(sizeof(int));
         std::cout << "resource allocated at address " << _myInt << " with _myInt=" << *_myInt << std::endl;
@@ -256,6 +257,7 @@ resource freed at address 0x100300080
 resource freed at address 0x100300070
 resource freed at address 0x100300060
 ```
+
 As can be seen, all copies have the same value of 42 while the address of the handle differs between source, dest1 and dest2.
 
 ---
@@ -302,7 +304,7 @@ SharedCopy::~SharedCopy()
     }
 }
 
-SharedCopy::SharedCopy(SharedCopy &source)
+SharedCopy::SharedCopy(const SharedCopy &source)
 {
     _myInt = source._myInt;
     ++_cnt;

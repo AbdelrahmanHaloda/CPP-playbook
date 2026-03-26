@@ -1,15 +1,16 @@
-### <u>Running Multiple Threads</u>
+# Running Multiple Threads
 
 **Fork-Join Parallelism**
-Using threads follows a basic concept called **"fork-join-parallelism"**. 
-The basic mechanism of this concept follows a simple three-step pattern:
+Using threads follows a basic concept called **"fork-join-parallelism"**.
+
+**The basic mechanism of this concept follows a simple three-step pattern:**
 
 1- Split the flow of execution into a parallel thread ("fork")
 2- Perform some work in both the main thread and the parallel thread
 3- Wait for the parallel thread to finish and unite the split flow of execution again ("join")
 
 The following diagram illustrates the basic idea of forking:
-![Forking_Diagram](/Users/abdelrahmanhaloda/Desktop/AHossam/REPOS/NanoDegreeCPP/1_Docs/Concurrency/Images/forking.jpg)
+![Forking_Diagram](/Users/abdelrahmanhaloda/AHossam/REPOS/CPP-playbook/1_Docs/4_Concurrency/Z_Images/forking.jpg)
 
 In the main thread, the program flow is forked into three parallel branches. In both worker branches, some work is performed - which is why threads are often referred to as "worker threads". Once the work is completed, the flow of execution is united again in the main function using the join() command. In this example, join acts as a barrier where all threads are united. The execution of main is in fact halted, until both worker threads have successfully completed their respective work.
 
@@ -61,25 +62,28 @@ int main()
 
 **Example 1 o/p:**
 To solve our problem, we can use the function `emplace_back()` instead of `push_back()`, which internally uses **move semantics** to move our thread object into the vector without making a copy. When executing the code, we get the following output:
-```
+
+```sh
 Hello from Worker thread #Hello from Worker thread #135012492896000135012501288704
 Hello from Worker thread #135012476110592
 Hello from Worker thread #135012484503296
 Hello from Main thread #135012519065408
 Hello from Worker thread #135012467717888
 ```
+
 This is surely not how we intended the console output to look like. When we take a close look at the call to std::cout in the thread function, we can see that it actually consists of three parts: the string "Hello from worker…", the respective thread id and finally the line break at the end. In the output, all three components are completely intermingled. Also, when the program is run several times, the output will look different with each execution. This shows us two important properties of concurrent programs:
 
 1- The order in which threads are executed is **non-deterministic**. Every time a program is executed, there is a chance for a completely different order of execution.
 
 2- Threads may get preempted in the middle of execution and another thread may be selected to run.
 
-These two properties pose a major problem with concurrent applications: 
+These two properties pose a major problem with concurrent applications:
 A program may run correctly for thousands of times and suddenly, due to a particular interleaving of threads, there might be a problem. From a debugging perspective, such errors are very hard to detect as they can not be reproduced easily.
 
 ---
 
-### <u>A First Concurrency Bug</u>
+## A First Concurrency Bug
+
 **Example 2:**
 Let us adjust the program code from the previous example and use a Lambda instead of the function printHello(). Also, we will pass the loop counter i into the Lambda to enforce an individual wait time for each thread. The idea is to prevent the interleaving of text on the command line which we saw in the previous example.
 
@@ -119,7 +123,8 @@ int main()
 ```
 
 **Example 2 o/p:**
-```
+
+```sh
 Hello from Worker thread #0
 Hello from Main thread
 Hello from Worker thread #1

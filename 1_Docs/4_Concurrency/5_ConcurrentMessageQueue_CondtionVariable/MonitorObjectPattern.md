@@ -1,10 +1,9 @@
-### <u>The Monitor Object Pattern</u>
+# The Monitor Object Pattern
 
 **The monitor object pattern**
+**A design pattern** that synchronizes concurrent method execution to ensure that only one method at a time runs within an object. It also allows an object's methods to cooperatively schedule their execution sequences.
 
-**A design pattern** that synchronizes concurrent method execution to ensure that only one method at a time runs within an object. It also allows an object's methods to cooperatively schedule their execution sequences. 
-
-The problem solved by this pattern is based on the observation that many applications contain objects whose methods are invoked concurrently by multiple client **threads**. These methods often modify the state of their objects, for example by adding data to an internal vector. 
+The problem solved by this pattern is based on the observation that many applications contain objects whose methods are invoked concurrently by multiple client **threads**. These methods often modify the state of their objects, for example by adding data to an internal vector.
 
 For such concurrent programs to execute correctly, it is necessary to synchronize and schedule access to the objects very carefully. The idea of a monitor object is to synchronize the access to an object's methods so that only one method can execute at any one time.
 
@@ -12,7 +11,8 @@ For such concurrent programs to execute correctly, it is necessary to synchroniz
 
 **Example 1:**
 Constructing a Monitor Object.
-```
+
+```cpp
 #include <iostream>
 #include <thread>
 #include <vector>
@@ -87,12 +87,15 @@ int main()
 **Example 1 o/p:**
 As can be seen, the Vehicle objects are added one at a time, with all threads duly waiting for their turn. Then, once all Vehicle objects have been stored, the call to printIDs prints the entire content of the vector all at once.
 
-While the functionality of the **monitor object** we have constructed is an improvement over many other methods that allow passing data to threads, it has one significant **disadvantage**: 
-The **main thread** has to wait until all **worker threads** have completed their jobs and only then can it access the added data in bulk. 
-A system which is truly interactive however has to react to events as they arrive - it should not wait until all threads have completed their jobs but instead act immediately as soon as new data arrives. 
+While the functionality of the **monitor object** we have constructed is an improvement over many other methods that allow passing data to threads, it has one significant **disadvantage**:
+
+The **main thread** has to wait until all **worker threads** have completed their jobs and only then can it access the added data in bulk.
+
+A system which is truly interactive however has to react to events as they arrive - it should not wait until all threads have completed their jobs but instead act immediately as soon as new data arrives.
 
 **In the following, we want to add this functionality to our monitor object.**
-```
+
+```sh
    Vehicle #2 will be added to the queue
    Vehicle #3 will be added to the queue
    Vehicle #4 will be added to the queue
@@ -116,18 +119,19 @@ Collecting results...
 
 ---
 
-### <u>Creating an infinite polling loop</u>
-While the **pushBack** method is used by the **threads** to add data to the monitor incrementally, **the main thread** uses **printSize** at the end to display all the results at once. 
+## Creating an infinite polling loop
 
-Our goal is to change the code in a way that the **main thread** gets notified every time new data becomes available. 
+While the **pushBack** method is used by the **threads** to add data to the monitor incrementally, **the main thread** uses **printSize** at the end to display all the results at once.
 
-But how can the main thread know whether new data has become available? 
+Our goal is to change the code in a way that the **main thread** gets notified every time new data becomes available.
+
+But how can the main thread know whether new data has become available?
 **The solution** is to write a new method that regularly checks for the arrival of new data.
 
 **Example 2:**
 In the code below, a new method **`dataIsAvailable()`** has been added while **`printIDs()`** has been removed. This method returns true if data is available in the vector and false otherwise. Once the **main thread** has found out via **`dataIsAvailable()`** that new data is in the vector, it can call the method **`popBack()`** to retrieve the data from the monitor object. **Note** that instead of copying the data, it is moved from the vector to the main method.
 
-```
+```cpp
 #include <iostream>
 #include <thread>
 #include <vector>
@@ -235,12 +239,13 @@ int main()
     return 0;
 }
 ```
-In the main thread, an infinite while-loop is used to frequently poll the **monitor object** and check whether new data has become available. Contrary to before, we will now perform the read operation before the workers are done - so we have to integrate our loop before **`wait()`** is called on the **futures** at the end of **`main()`**. Once a new Vehicle object becomes available, we want to print it within the loop.
 
+In the main thread, an infinite while-loop is used to frequently poll the **monitor object** and check whether new data has become available. Contrary to before, we will now perform the read operation before the workers are done - so we have to integrate our loop before **`wait()`** is called on the **futures** at the end of **`main()`**. Once a new Vehicle object becomes available, we want to print it within the loop.
 
 **Example 2 o/p:**
 From the output it can easily be seen, that adding and removing to and from the **monitor object** is now interleaved. When executed repeatedly, the order of the vehicles will most probably differ between executions.
-```
+
+```sh
 Spawning threads...
 Collecting results...
    Vehicle #0 will be added to the queue
@@ -267,4 +272,3 @@ Finished processing queue
 ```
 
 ---
-

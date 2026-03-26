@@ -1,5 +1,7 @@
-### Heap Memory
-#### Properties of Heap Memory
+# Heap Memory
+
+## Properties of Heap Memory
+
 Heap memory, also know as dynamic memory , is an important resource available to programs (and programmers) to store data. The following diagram again shows the layout of virtual memory with the heap being right above the BSS and Data segment.
 
 The heap memory grows upwards while the stack grows in the opposite direction. The automatic stack memory shrinks and grows with each function call and local variable. As soon as the scope of a variable is left, it is automatically deallocated and the stack pointer is shifted upwards accordingly.
@@ -18,8 +20,8 @@ Let us take a look at some properties of heap memory:
 
 5- When memory is allocated or deallocated on the stack, the stack pointer is simply shifted upwards or downwards. Due to the sequential structure of stack memory management, stack memory can be managed (by the operating system) easily and securely. With heap memory, allocation and deallocation can occur arbitrarily, depending on the lifetime of the variables. This can result in fragmented memory over time, which is much more difficult and expensive to manage.
 
+## Memory Fragmentation
 
-#### Memory Fragmentation
 Let us construct a theoretic example of how memory on the heap can become fragmented: Suppose we are interleaving the allocation of two data types X and Y. First, we allocate a block of memory for a variable of type X, then another block for Y and so on in a repeated manner until some upper bound is reached.
 
 At some point, we might then decide to deallocate all variables of type Y, leading to empty spaces in between the remaining variables of type X. In between two blocks of type "X", no memory for an additional "X" could now be squeezed in this example.
@@ -32,18 +34,22 @@ When memory is heavily fragmented however, memory allocations will likely take l
 Until now, our examples have been only theoretical. It is time to gain some practical experience in the next section using malloc and free as C-style methods for dynamic memory management.
 
 ---
-### Allocating Dynamic Memory
-#### Using malloc, calloc, free
+
+## Allocating Dynamic Memory
+
+### Using malloc, calloc, free
+
 To allocate dynamic memory on the heap means to make a contiguous memory area accessible to the program at runtime and to mark this memory as occupied so that no one else can write there by mistake.
 
 To reserve memory on the heap, one of the two functions malloc (stands for Memory Allocation) or calloc (stands for Cleared Memory Allocation) is used. The header file stdlib.h or malloc.h must be included to use the functions.
 
 Here is the syntax of malloc and calloc in C/C++:
 
-```
+```c++
 pointer_name = (cast-type*) malloc(size);
 pointer_name = (cast-type*) calloc(num_elems, size_elem);
 ```
+
 **malloc** is used to dynamically allocate a single large block of memory with the specified size. It returns a pointer of type void which can be cast into a pointer of any form.
 
 **calloc** is used to dynamically allocate the specified number of blocks of memory of the specified type. It initializes each block with a default value '0'.
@@ -57,25 +63,33 @@ Because the problem with void pointers is that there is no way of knowing the of
 The size of the memory area reserved with malloc or calloc can be increased or decreased with the **realloc function**.
 
 `pointer_name = (cast-type*) realloc( (cast-type*)old_memblock, new_size );`
-` p = (int*)realloc(p,2*sizeof(int));`
 
-#### Freeing up Memory
+`p = (int*)realloc(p,2*sizeof(int));`
+
+### Freeing up Memory
+
 If memory has been reserved, it should also be released as soon as it is no longer needed. If memory is reserved regularly without releasing it again, the memory capacity may be exhausted at some point. If the RAM memory is completely used up, the data is swapped out to the hard disk, which slows down the computer significantly.
 
 The free function releases the reserved memory area so that it can be used again or made available to other programs. To do this, the pointer pointing to the memory area to be freed is specified as a parameter for the function.
-```
+
+```c++
 void *p = malloc(100); 
 free(p);
 ```
+
 **NOTE:-**
 1- free can only free memory that was reserved with malloc or calloc.
 
 2- free can only release memory that has not been released before. Releasing the same block of memory twice will result in an error.
 
 ---
+
 ### Using new and delete
+
 #### Comparing malloc with new
-The functions malloc and free are library function and represent the default way of allocating and deallocating memory in C. In C++, they are also part of the standard and can be used to allocate blocks of memory on the heap.
+
+The functions malloc and free are library function and represent the default way of allocating and deallocating memory in C.
+In C++, they are also part of the standard and can be used to allocate blocks of memory on the heap.
 
 With the introduction of classes and object oriented programming in C++ however, memory allocation and deallocation has become more complex: When an object is created, its constructor needs to be called to allow for member initialization. Also, on object deletion, the destructor is called to free resources and to allow for programmer-defined clean-up tasks. For this reason, C++ introduces the operators new / delete, which represent the object-oriented counterpart to memory management with malloc / free.
 
@@ -83,14 +97,17 @@ If we were to create a C++ object with malloc, the constructor and destructor of
 
 In main, we will allocate memory for an instance of MyClass using both malloc/ free and new/delete.
 
-With malloc, the program crashes on calling the method setNumber, as no memory has been allocated for _number - because the constructor has not been called. Hence, an EXC_BAD_ACCESS error occurs, when trying to access the memory location to which _number is pointing. With _new, the output looks like the following:
-```
+With malloc, the program crashes on calling the method setNumber, as no memory has been allocated for `_number` because the constructor has not been called. Hence, an **EXC_BAD_ACCESS** error occurs, when trying to access the memory location to which `_number` is pointing.
+
+With **_new**, the output looks like the following:
+
+```c++
 Allocate memory
 Number: 42
 Delete memory
 ```
 
-```
+```c++
 #include <stdlib.h>
 #include <iostream>
 
@@ -133,17 +150,20 @@ int main()
     return 0;
 }
 ```
-#### Summarize the major differences between malloc/free and new/delete:
+
+### Summarize the major differences between malloc/free and new/delete
 
 1- Constructors / Destructors Unlike malloc( sizeof(MyClass) ), the call new MyClass() calls the constructor. Similarly, delete calls the destructor.
 
-2- Type safety malloc returns a void pointer, which needs to be cast into the appropriate data type it points to. This is not type safe, as you can freely vary the pointer type without any warnings or errors from the compiler as in the following small example: MyObject *p = (MyObject*)malloc(sizeof(int));
+2- Type safety malloc returns a void pointer, which needs to be cast into the appropriate data type it points to. This is not type safe, as you can freely vary the pointer type without any warnings or errors from the compiler as in the following small example: MyObject `*p = (MyObject*)malloc(sizeof(int));`
 
 In C++, the call `MyObject *p = new MyObject()` returns the correct type automatically - it is thus type-safe.
 
 #### Example on new and delete overloading
+
 By customizing the new operator to use malloc in allocating memory, this way we managed to use the full functionality of new which includes calling the constructor and also we explicitly handled the memory allocation by using malloc
-```
+
+```c++
 #include <iostream>
 #include <stdlib.h>
 
@@ -184,20 +204,24 @@ int main()
 }
 ```
 
-```
+```sh
 // output
 new: Allocating 4 bytes of memory
 Constructor is called
 Destructor is called
 delete: Memory is freed again 
 ```
+
 As can be seen from the order of text output, memory is instantiated in new before the constructor is called, while the order is reversed for the destructor and the call to delete.
-#### Summary
+
+### Summary
+
 1- Using malloc: Allocates memory but does not call the constructor, resulting in an uninitialized object.
 2- Using new: Allocates memory and calls the constructor, resulting in a properly initialized object.
 3- Overloaded new: Customizes the memory allocation but still ensures that the constructor is called, as per the C++ object creation process.
 
-#### Reasons for overloading new and delete
+### Reasons for overloading new and delete
+
 1- The overloaded new operator function allows to add additional parameters. Therefore, a class can have multiple overloaded new operator functions. This gives the programmer more flexibility in customizing the memory allocation for objects.
 2- Overloading the new and delete operators provides an easy way to integrate a mechanism similar to garbage collection capabilities (such as in Java).
 3- By adding exception handling capabilities into new and delete, the code can be made more robust.
@@ -206,11 +230,12 @@ As can be seen from the order of text output, memory is instantiated in new befo
 ---
 
 ### Bjarne on new and delete
+
 Rule of thumb is don't use new and delete should in the apllication code. new and delete belongs in the implementation of your abstractions. So if you use new a vector of strings,  you don't use new and delete, it's gone. it's hidden inside the abstraction. 
 
 ---
 
-### The worst problems with new and delete:
+### The worst problems with new and delete
 
 - **Proper pairing of new and delete :** Every dynamically allocated object that is created with new must be followed by a manual deallocation at a "proper" place in the program. If the programer forgets to call delete (which can happen very quickly) or if it is done at an "inappropriate" position, memory leaks will occur which might clog up a large portion of memory.
 

@@ -1,26 +1,25 @@
-### <u>Starting a Thread with a Function Object</u>
+# Starting a Thread with a Function Object
 
 **Callable Objects**
 In C++, **callable objects** are object that can appear as the left-hand operand of the call operator.
 
 In the context of concurrency, we can use **callable objects** to attach a function to a thread.
- 
-
 **Callable Objects can be:-**
+
 - **pointer to function**
-- **Function Object (Functor).** 
-- **Lambdas (an anonymous inline function)**,
+- **Function Object (Functor).**
+- **Lambdas (an anonymous inline function)**
 
 ---
 
-### <u>Passing Data to threads</u> 
+## Passing Data to threads
 
-**There are several ways of passing data to a thread function using "callable objects":-**
+### There are several ways of passing data to a thread function using "callable objects"
 
 **Note:-**
 **The following methods represent passing data to threads from the parent thread to the worker thread.**
 
-**1- Pointer to function.** 
+**1- Pointer to function.**
 Passing a function with no arguments to a thread object is not always efficient because the only way to make data available from within the thread function would be to use global variables - which is definitely not recommendable and also incredibly messy.
 
 **2- Function Objects which are also known as (Functors).**
@@ -63,9 +62,12 @@ int main()
 
     return 0;
 }
+
 ```
+
 **Example 1 o/p:**
-```
+
+```sh
 error: request for member ‘join’ in ‘t’, which is of non-class type ‘std::thread(Vehicle (*)())’
      t.join();
 ```
@@ -134,19 +136,20 @@ int main()
 
 **Example 2 o/p:**
 The put of this code sample shows that all three threads are executed and the Vehicle object is properly initialized:
-```shell
+
+```sh
 Vehicle #1 has been created
 Vehicle #2 has been created
 Finished work in main 
 Vehicle #3 has been created
 ```
-Whichever option we use, the idea is the same: the function object is copied into internal storage accessible to the new thread, and the new thread invokes the operator (). The Vehicle class can of course have data members and other member functions too, and this is one way of passing data to the thread function: pass it in as a constructor argument and store it as a data member:
 
+Whichever option we use, the idea is the same: the function object is copied into internal storage accessible to the new thread, and the new thread invokes the operator (). The Vehicle class can of course have data members and other member functions too, and this is one way of passing data to the thread function: pass it in as a constructor argument and store it as a data member:
 
 **3- Lambda expression "Lambda" for short.**
 With a Lambda you can easily create simple function objects.
 
-### <u>Starting Threads with Lambdas</u>
+**Starting Threads with Lambdas**
 A Lambda is just an object and, like other objects it may be copied, passed as a parameter, stored in a container, etc. The Lambda object has its own scope and lifetime which may, in some circumstances, be different to those objects it has ‘captured’. **Programers need to take special care when capturing local objects by reference because a Lambda’s lifetime may exceed the lifetime of its capture list:** **It must be ensured that the object to which the reference points is still in scope when the Lambda is called.** **This is especially important in multi-threading programs.**
 
 **Example 3:**
@@ -186,9 +189,13 @@ int main()
 ```
 
 **Example 3 o/p:**
-```shell
+
+```sh
 c) ID in Main (call-by-value) = 1
 b) ID in Thread (call-by-value) = 0
 a) ID in Thread (call-by-reference) = 1
 ```
+
 As you can see, the output in the main thread is generated first, at which point the variable ID has taken the value 1. Then, the call-by-value thread is executed with ID at a value of 0. Then, the call-by-reference thread is executed with ID at a value of 1. This illustrates the effect of passing a value by reference : when the data to which the reference refers changes before the thread is executed, those changes will be visible to the thread.
+
+---

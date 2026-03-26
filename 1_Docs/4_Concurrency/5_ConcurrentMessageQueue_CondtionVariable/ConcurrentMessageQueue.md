@@ -1,38 +1,35 @@
-### Building a Concurrent Message Queue
+# Building a Concurrent Message Queue
 
 **Condition variables**
-
-The polling loop we have used in the previous example has not been programmed optimally: As long as the program is running, the while-loop will keep the processor busy, constantly asking wether new data is available. 
+The polling loop we have used in the previous example has not been programmed optimally: As long as the program is running, the while-loop will keep the processor busy, constantly asking wether new data is available.
 
 In the following, we will look at a better way to solve this problem without putting too much load on the processor.
 
-The alternative to a polling loop is for the **main thread** to **block** and **wait** for a signal that new data is available. This would prevent the infinite loop from keeping the processor busy. 
+The alternative to a polling loop is for the **main thread** to **block** and **wait** for a signal that new data is available. This would prevent the infinite loop from keeping the processor busy.
 
-We have already discussed a mechanism that would fulfill this purpose - the **promise-future construct**. The problem with **futures** is that they can only be used a **single time**. Once a **future** is ready and **`get()`** has been called, it can not be used any more. For our purpose, we need a signaling mechanism that can be re-used. 
+We have already discussed a mechanism that would fulfill this purpose - the **promise-future construct**. The problem with **futures** is that they can only be used a **single time**. Once a **future** is ready and **`get()`** has been called, it can not be used any more. For our purpose, we need a signaling mechanism that can be re-used.
 
 The C++ standard offers such a construct in the form of **"condition variables"**.
 
-A **`std::condition_variable`** has a method **wait()**, which **blocks**, when it is called by a **thread**. 
+A **`std::condition_variable`** has a method **wait()**, which **blocks**, when it is called by a **thread**.
 
-The condition variable is kept blocked until it is released by another **thread**. The release works via the method **`notify_one()`** or the **notify_all** method. 
+The condition variable is kept blocked until it is released by another **thread**. The release works via the method **`notify_one()`** or the **notify_all** method.
 
 The key difference between the two methods is that **notify_one** will only wake up a single **waiting thread** while **notify_all** will wake up all the **waiting threads** at once.
 
-A **condition variable** is a low-level building block for more advanced communication protocols. It neither has a memory of its own nor does it remember notifications. Imagine that one thread calls **`wait()`** before another thread calls **`notify()`**, the condition variable works as expected and the first **thread** will wake up. Imagine the case however where the call order is reversed such that notify() is called before **wait()**, the notification will be lost and the thread will block indefinitely. 
+A **condition variable** is a low-level building block for more advanced communication protocols. It neither has a memory of its own nor does it remember notifications. Imagine that one thread calls **`wait()`** before another thread calls **`notify()`**, the condition variable works as expected and the first **thread** will wake up. Imagine the case however where the call order is reversed such that notify() is called before **wait()**, the notification will be lost and the thread will block indefinitely.
 
 So in more sophisticated communication protocols a condition variable should always be used in conjunction with another shared state that can be checked independently. Notifying a condition variable in this case would then only mean to proceed and check this other shared state.
 
 Let us pretend our **shared variable** was a boolean called **dataIsAvailable**. Now let’s discuss two scenarios for the protocol depending on who acts first, the producer or the consumer **thread**.
 
-
 **Scenario 1:**
-![concurentQueueMessage1](/Users/abdelrahmanhaloda/Desktop/AHossam/REPOS/NanoDegreeCPP/1_Docs/Concurrency/Images/concurentQueueMessage1.png)
+![concurentQueueMessage1](/Users/abdelrahmanhaloda/AHossam/REPOS/CPP-playbook/1_Docs/4_Concurrency/Z_Images/concurentQueueMessage1.png)
 
 The consumer thread checks dataIsAvailable() and since it is false, the consumer thread blocks and waits on the condition variable. Later in time, the producer thread sets dataIsAvailable to true and calls notify_one on the condition variable. At this point, the consumer wakes up and proceeds with its work.
 
-
 **Scenario 2 :**
-![concurentQueueMessage2](/Users/abdelrahmanhaloda/Desktop/AHossam/REPOS/NanoDegreeCPP/1_Docs/Concurrency/Images/concurentQueueMessage2.png)
+![concurentQueueMessage2](/Users/abdelrahmanhaloda/AHossam/REPOS/CPP-playbook/1_Docs/4_Concurrency/Z_Images/concurentQueueMessage2.png)
 
 Here, the **producer thread** comes first, sets **`dataIsAvailable()`** to true and calls **notify_one**. Then, the **consumer thread** comes and checks **dataIsAvailable()** and finds it to be true - so it does not call **wait** and proceeds directly with its work. Even though the notification is lost, it does not cause a problem in this construct - the message has been passed successfully through **dataIsAvailable** and the wait-lock has been avoided.
 
@@ -41,7 +38,7 @@ In an ideal (non-concurrent) world, these two scenarios would most probably be s
 **Scenario 3:**
 Here is one combination that will cause the program to lock:
 
-![concurentQueueMessage3](/Users/abdelrahmanhaloda/Desktop/AHossam/REPOS/NanoDegreeCPP/1_Docs/Concurrency/Images/concurentQueueMessage3.png)
+![concurentQueueMessage3](/Users/abdelrahmanhaloda/AHossam/REPOS/CPP-playbook/1_Docs/4_Concurrency/Z_Images/concurentQueueMessage3.png)
 
 The consumer thread reads **`dataIsAvailable()`**, which is false. Then, the producer sets **`dataIsAvailable()`** to true and calls notify. Due to this unlucky interleaving of actions, the consumer **thread** calls **wait** because it has seen **`dataIsAvailable()`** as false. This is possible because the consumer **thread** tasks are not a joint atomic operation but may be separated by the scheduler and interleaved with some other tasks - in this case the two actions performed by the **producer thread**. The problem here is that after calling **wait**, the **consumer thread** will never wake up again. Also, as you may have noticed, the shared variable **dataReady** is not protected by a **mutex** here - which makes it even more likely that something will go wrong.
 
@@ -49,18 +46,18 @@ One quick idea for a solution which might come to mind would be to perform the t
 
 One reason for discussing these failed scenarios in such depth is to make you aware of the complexity of concurrent behavior - even with a simple protocol like the one we are discussing right now.
 
-
 **Scenario 4:**
 So let us now look at the final solution to the above problems and thus a working version of our communication protocol.
 
-![concurentQueueMessage4](/Users/abdelrahmanhaloda/Desktop/AHossam/REPOS/NanoDegreeCPP/1_Docs/Concurrency/Images/concurentQueueMessage4.png)
+![concurentQueueMessage4](/Users/abdelrahmanhaloda/AHossam/REPOS/CPP-playbook/1_Docs/4_Concurrency/Z_Images/concurentQueueMessage4.png)
 
 As seen above, we are closing the gap between reading the state and entering the **wait**. We are reading the state under the lock (red bar) and we call **wait** still under the lock. Then, we let **wait** release the lock and enter the **wait** state in one atomic step. This is only possible because the **`wait()`** method is able to take a lock as an argument. The lock that we can pass to wait however is not the **lock_guard** we have been using so often until now but instead it has to be a lock that can be temporarily unlocked inside **wait** - a suitable lock for this purpose would be the **unique_lock** type.
 
 ---
 
-### <u>Implementing the WaitingVehicles queue</u>
-Now that we have all the ingredients to implement the **concurrent queue** to store waiting Vehicle objects, 
+## Implementing the WaitingVehicles queue
+
+Now that we have all the ingredients to implement the **concurrent queue** to store waiting Vehicle objects,
 
 let us start with the implementation according to the diagram above.
 
@@ -84,7 +81,7 @@ We can further simplify this code by letting the **`wait()`** function do the te
 **Final Example:**
 Let us now take a look at the complete code.
 
-```
+```cpp
 #include <iostream>
 #include <thread>
 #include <vector>
@@ -173,7 +170,8 @@ int main()
 ```
 
 **Final Example o/p:**
-```
+
+```sh
 Spawning threads...
 Collecting results...
    Vehicle #0 will be added to the queue
@@ -200,7 +198,8 @@ Collecting results...
 
 **Example 1`:**
 Same code but modified to be a generic queueMessage.
-```
+
+```cpp
 #include <iostream>
 #include <thread>
 #include <queue>
@@ -276,7 +275,8 @@ int main()
 ```
 
 **Example 1` o/p:**
-```
+
+```sh
 Spawning threads...
 Collecting results...
    Message 0 has been sent to the queue
@@ -300,6 +300,7 @@ Collecting results...
    Message #6 has been removed from the queue
    Message #2 has been removed from the queue
 ```
+
 A message queue is an effective and very useful mechanism to enable a safe and reusable communication channel between threads. In the final project, we will use shorty use this construct to integrate another component into our simulation - traffic lights at intersections.
 
 ---
