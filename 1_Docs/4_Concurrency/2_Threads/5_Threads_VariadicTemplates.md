@@ -8,6 +8,7 @@ Before C++11, classes and functions could only accept a fixed number of argument
 
 **Example 1:**
 Using variadic templates.
+
 ```c++
 #include <iostream>
 #include <thread>

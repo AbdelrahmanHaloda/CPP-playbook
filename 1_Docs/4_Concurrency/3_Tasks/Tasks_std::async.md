@@ -10,7 +10,8 @@ When you use **`std::async`**, you are essentially creating a **task**, not nece
 
 ### Launch Policies and Their Effects
 
-- **std::launch::async:** 
+- **std::launch::async:**
+
 This policy forces the task to run **asynchronously**, which typically means creating a new **thread** to execute the function. In this case, **`std::async`** does indeed generate a new **thread** to execute the task.
 
 - **std::launch::deferred:**
