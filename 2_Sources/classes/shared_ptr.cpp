@@ -1,92 +1,125 @@
 #include <iostream>
 
-template < typename T>
+template <typename T>
 class SharedPtr
 {
     private:
-        T* ptr_;
-        size_t* ref_count_; // Must be a pointer to share count per resource
+        T* ptr;
+        size_t* refCount_; // Must be a pointer to share count per resource
 
-        void cleanup()
+        // Clean
+        void clean()
         {
-            if (ref_count_)
+            if(refCount)
             {
-                (*ref_count_)--;
-                if (*ref_count_ == 0)
+                (*refCount)--;
+                if(*refCount == 0)
                 {
-                    delete ptr_; 
-                    delete ref_count_;
+                    delete ptr;
+                    delete refCount;
                 }
             }
+            ptr = nullptr;
+            refCount = nullptr;
         }
 
     public:
-        // Default constructor
-        SharedPtr() noexcept : ptr_(nullptr), ref_count_(nullptr) {}
 
-        // Constructor from raw pointer
-        explicit SharedPtr(T* ptr) : ptr_(ptr)
-        {
-            ref_count_ = new int(1);
-        }
+        // Default Constructor
+        SharedPtr() noexcept : 
+            ptr(nullptr),
+            refCount(nullptr)
+            {}
+
+        // Constructor with raw pointer
+        explicit SharedPtr(T* p) :
+            ptr(p),
+            refCount(p ? new std::size_t(1) : nullptr)
+            {}
+
 
         // Destructor
-        ~SharedPtr() noexcept
+        ~SharedPtr()
         {
-            cleanup();
+            clean();
         }
 
-        // Copy constructor
-        SharedPtr(const SharedPtr& other)
-            : ptr_(other.ptr_), ref_count_(other.ref_count_)
+        // copy constructor
+        SharedPtr(const SharedPtr& other) noexcept :
+            ptr(other.ptr),
+            refCount(other.refCount)
         {
-            if (ref_count_)
+            if(refCount)
             {
-                (*ref_count_)++;
+                (*refCount)++;
             }
         }
 
-        // Copy assignment
-        SharedPtr& operator=(const SharedPtr& other)
+        // copy assignment operator
+        SharedPtr& operator=(const SharedPtr& other) noexcept
         {
             if (this != &other)
             {
-                cleanup(); // Release current resource
-
-                ptr_ = other.ptr_;
-                ref_count_ = other.ref_count_;
-                if (ref_count_)
+                clean();
+                
+                ptr = other.ptr;
+                refCount = other.refCount;
+                
+                if (refCount)
                 {
-                    (*ref_count_)++;
+                    (*refCount)++;
                 }
             }
             return *this;
         }
 
-        // Move constructor
-        SharedPtr(SharedPtr&& other) noexcept
-            : ptr_(other.ptr_), ref_count_(other.ref_count_)
+        // move constructor
+        SharedPtr(SharedPtr&& other) noexcept :
+            ptr(other.ptr),
+            refCount(other.refCount)
         {
-            other.ptr_ = nullptr;
-            other.ref_count_ = nullptr;
+            other.ptr = nullptr;
+            other.refCount = nullptr;
         }
 
-        // Move assignment
+        // move assignment operator
         SharedPtr& operator=(SharedPtr&& other) noexcept
         {
             if (this != &other)
             {
-                cleanup();
+                clean();
 
-                ptr_ = other.ptr_;
-                ref_count_ = other.ref_count_;
-                other.ptr_ = nullptr;
-                other.ref_count_ = nullptr;
+                ptr = other.ptr;
+                refCount = other.refCount;
+                
+                other.ptr = nullptr;
+                other.refCount = nullptr;
             }
             return *this;
         }
 
-        T& operator*() const { return *ptr_; }
-        T* operator->() const { return ptr_; }
-        size_t use_count() const { return ref_count_ ? *ref_count_ : 0; }
+        // dereference operator
+        T& operator*() const noexcept
+        {
+            return *ptr;
+        }
+
+        // arrow operator
+        T* operator->() const noexcept
+        {
+            return ptr;
+        }
+
+        // get
+        T* get() const noexcept
+        {
+            return ptr;
+        }
+
 };
+
+int main ()
+{
+
+    return 1;
+}
